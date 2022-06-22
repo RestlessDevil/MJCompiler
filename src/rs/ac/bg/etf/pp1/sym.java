@@ -6,13 +6,13 @@ public class sym {
 	public static final int PROG = 1;
 	public static final int PRINT = 2;
 	public static final int RETURN = 3;
-
+	
 	// Identifiers
 	public static final int IDENT = 4;
-
+	
 	// Constants
 	public static final int NUMBER = 5;
-
+	
 	// Operators
 	public static final int PLUS = 6;
 	public static final int EQUAL = 7;
@@ -22,7 +22,8 @@ public class sym {
 	public static final int RPAREN = 11;
 	public static final int LBRACE = 12;
 	public static final int RBRACE = 13;
-
+	
 	public static final int EOF = 14;
 	public static final int VOID = 15;
+	
 }
