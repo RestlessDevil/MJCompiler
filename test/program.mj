@@ -1,9 +1,6 @@
 program MJProgram
-	int x, y;
 {
 	void main() {
-		int testInt = 10;
-		testInt++;
-		testInt = testInt + 5;
+
 	}
 }

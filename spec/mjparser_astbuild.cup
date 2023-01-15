@@ -1,0 +1,58 @@
+package rs.ac.bg.etf.pp1;
+
+import java_cup.runtime.*;
+import org.apache.log4j.*;
+import rs.ac.bg.etf.pp1.ast.*;
+
+parser code {:
+
+	Logger log = Logger.getLogger(getClass());  
+    
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+      done_parsing();
+      report_error(message, info);
+    }
+  
+    public void syntax_error(Symbol cur_token) {
+        report_error("\nSintaksna greska", cur_token);
+    }
+  
+    public void unrecovered_syntax_error(Symbol cur_token) throws java.lang.Exception {
+        report_fatal_error("Fatalna greska, parsiranje se ne moze nastaviti", cur_token);
+    }
+
+    public void report_error(String message, Object info) {
+    	StringBuilder msg = new StringBuilder(message); 
+    	if (info instanceof Symbol)
+            msg.append (" na liniji ").append(((Symbol)info).left);
+        log.error(msg.toString());
+    }
+:}
+
+
+scan with {:
+	Symbol s = this.getScanner().next_token();
+	if (s != null && s.value != null) 
+		log.info(s.toString() + " " + s.value.toString());
+	return s;
+:}
+
+terminal PROGRAM, IDENTIFIER, PRINT, READ;
+terminal PLUS, MINUS, ASTERISK, PERCENT, EQUALS;
+terminal INCREMENT, DECREMENT;
+terminal SEMICOLON, COMMA, APOS;
+terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQUARE, RSQUARE;
+terminal VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, NUMBER, TRUE, FALSE;
+
+nonterminal Program Program;
+nonterminal MainFunction MainFunction;
+nonterminal Declarations Declarations;
+nonterminal Type Type;
+nonterminal Identifiers Identifiers;
+nonterminal Statements Statements;
+
+Program ::= (Program) PROGRAM IDENTIFIER:name Declarations:D1 LBRACE MainFunction:M2 RBRACE {: RESULT=new Program(D1, M2); RESULT.setLine(D1left); :};
+
+Declarations ::= {: RESULT=new DeclarationsDerived1(); :} 	/* empty */;
+				
+MainFunction ::= VOID_TYPE IDENTIFIER:name LPAREN RPAREN LBRACE RBRACE {: RESULT=new MainFunctionDerived1(); :};

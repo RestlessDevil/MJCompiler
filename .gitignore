@@ -3,3 +3,6 @@ logs/
 
 src/rs/ac/bg/etf/pp1/Yylex.*
 src/rs/ac/bg/etf/pp1/sym.*
+src/rs/ac/bg/etf/pp1/ast/
+
+*.class
