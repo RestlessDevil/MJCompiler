@@ -38,16 +38,33 @@ scan with {:
 :}
 
 terminal PROGRAM, IDENTIFIER, PRINT, READ;
-terminal PLUS, MINUS, ASTERISK, PERCENT, EQUALS;
+terminal PLUS, MINUS, ASTERISK, PERCENT, ASSIGN;
 terminal INCREMENT, DECREMENT;
 terminal SEMICOLON, COMMA, APOS;
 terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQUARE, RSQUARE;
-terminal VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, NUMBER, TRUE, FALSE;
+terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, NUMBER, CHAR, TRUE, FALSE;
 
-nonterminal Program, MainFunction, Declarations, Type, Identifiers, Statements;
+nonterminal Program, DeclarationList, StatementList, Statement, PrintStatement, Declaration, ConstDeclaration, VarDeclaration, AssignmentStatement, IntAssignment, CharAssignment, BoolAssignment, MainFunction, BoolValue;
 
-Program ::= (Program) PROGRAM IDENTIFIER:name Declarations LBRACE MainFunction RBRACE;
+start with Program;
 
-Declarations ::= 	/* empty */;
+Program ::= (Program) PROGRAM IDENTIFIER:name LBRACE DeclarationList MainFunction RBRACE;
+
+DeclarationList ::= DeclarationList Declaration | /* empty list */;
+
+StatementList ::= StatementList Statement | /* empty list */;
+
+Statement ::= Declaration | PrintStatement;
+PrintStatement ::= PRINT LPAREN NUMBER RPAREN SEMICOLON;
+
+Declaration ::= ConstDeclaration | VarDeclaration;
+ConstDeclaration ::= CONST_MODIFIER AssignmentStatement;
+VarDeclaration ::= AssignmentStatement;
+
+AssignmentStatement ::= IntAssignment SEMICOLON | CharAssignment SEMICOLON | BoolAssignment SEMICOLON;
+IntAssignment ::= (IntAssignment) INT_TYPE IDENTIFIER ASSIGN NUMBER:value;
+CharAssignment ::= CHAR_TYPE IDENTIFIER:name ASSIGN CHAR:value;
+BoolAssignment ::= (BoolAssignment) BOOL_TYPE IDENTIFIER:name ASSIGN BoolValue:value;
+BoolValue ::= TRUE:trueVal | FALSE:falseVal;
 				
-MainFunction ::= VOID_TYPE IDENTIFIER:name LPAREN RPAREN LBRACE RBRACE;
+MainFunction ::= (MainFunction) VOID_TYPE IDENTIFIER:name LPAREN RPAREN LBRACE StatementList RBRACE;

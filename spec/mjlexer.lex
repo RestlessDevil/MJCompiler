@@ -46,7 +46,7 @@ import java_cup.runtime.Symbol;
 "-"			{ return new_symbol(sym.MINUS, yytext()); }
 "*"			{ return new_symbol(sym.ASTERISK, yytext()); }
 "%"			{ return new_symbol(sym.PERCENT, yytext()); }
-"=" 		{ return new_symbol(sym.EQUALS, yytext()); }
+"=" 		{ return new_symbol(sym.ASSIGN, yytext()); }
 
 ";" 		{ return new_symbol(sym.SEMICOLON, yytext()); }
 "," 		{ return new_symbol(sym.COMMA, yytext()); }
@@ -59,6 +59,7 @@ import java_cup.runtime.Symbol;
 "[" 		{ return new_symbol(sym.LSQUARE, yytext()); }
 "]"			{ return new_symbol(sym.RSQUARE, yytext()); }
 
+"const"		{ return new_symbol(sym.CONST_MODIFIER, yytext()); }
 "void" 		{ return new_symbol(sym.VOID_TYPE, yytext()); }
 "int"		{ return new_symbol(sym.INT_TYPE, yytext()); }
 "char"		{ return new_symbol(sym.CHAR_TYPE, yytext()); }
@@ -71,6 +72,7 @@ import java_cup.runtime.Symbol;
 <COMMENT> "\r\n" { yybegin(YYINITIAL); }
 
 [0-9]+  { return new_symbol(sym.NUMBER, new Integer (yytext())); }
+'.' 	{return new_symbol (sym.CHAR, yytext()); }
 ([a-z]|[A-Z])[a-z|A-Z|0-9|_]* 	{return new_symbol (sym.IDENTIFIER, yytext()); }
 
 . { System.err.println("Leksicka greska ("+yytext()+") u liniji "+(yyline+1)); }

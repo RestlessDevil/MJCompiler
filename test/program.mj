@@ -1,6 +1,10 @@
-program MJProgram
-{
+program MJProgram {
+	
+	const int abuzibaja = 10;
+	char trtibiduba = '?';
+	bool testBool = false;
+	
 	void main() {
-
+		print(47);
 	}
 }
