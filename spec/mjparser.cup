@@ -37,14 +37,19 @@ scan with {:
 	return s;
 :}
 
-terminal PROGRAM, IDENTIFIER, PRINT, READ;
+terminal PROGRAM, PRINT, READ;
 terminal PLUS, MINUS, ASTERISK, PERCENT, ASSIGN;
 terminal INCREMENT, DECREMENT;
 terminal SEMICOLON, COMMA, APOS;
 terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQUARE, RSQUARE;
-terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, NUMBER, CHAR, TRUE, FALSE;
+terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, TRUE, FALSE;
 
-nonterminal Program, DeclarationList, StatementList, Statement, PrintStatement, Declaration, ConstDeclaration, VarDeclaration, AssignmentStatement, IntAssignment, CharAssignment, BoolAssignment, MainFunction, BoolValue;
+terminal Integer NUMBER;
+terminal String IDENTIFIER, CHAR;
+
+nonterminal DeclarationList, StatementList, Statement, PrintStatement, Declaration, ConstDeclaration, VarDeclaration, AssignmentStatement, IntAssignment, CharAssignment, BoolAssignment, MainFunction, BoolValue;
+
+nonterminal Program;
 
 start with Program;
 
@@ -55,16 +60,16 @@ DeclarationList ::= DeclarationList Declaration | /* empty list */;
 StatementList ::= StatementList Statement | /* empty list */;
 
 Statement ::= Declaration | PrintStatement;
-PrintStatement ::= PRINT LPAREN NUMBER RPAREN SEMICOLON;
+PrintStatement ::= (PrintStatement) PRINT LPAREN NUMBER RPAREN SEMICOLON;
 
 Declaration ::= ConstDeclaration | VarDeclaration;
 ConstDeclaration ::= CONST_MODIFIER AssignmentStatement;
 VarDeclaration ::= AssignmentStatement;
 
 AssignmentStatement ::= IntAssignment SEMICOLON | CharAssignment SEMICOLON | BoolAssignment SEMICOLON;
-IntAssignment ::= (IntAssignment) INT_TYPE IDENTIFIER ASSIGN NUMBER:value;
-CharAssignment ::= CHAR_TYPE IDENTIFIER:name ASSIGN CHAR:value;
-BoolAssignment ::= (BoolAssignment) BOOL_TYPE IDENTIFIER:name ASSIGN BoolValue:value;
+IntAssignment ::= (IntAssignment) INT_TYPE IDENTIFIER:varName ASSIGN NUMBER:value;
+CharAssignment ::= (CharAssignment) CHAR_TYPE IDENTIFIER:varName ASSIGN CHAR:value;
+BoolAssignment ::= (BoolAssignment) BOOL_TYPE IDENTIFIER:varName ASSIGN BoolValue:value;
 BoolValue ::= TRUE:trueVal | FALSE:falseVal;
 				
 MainFunction ::= (MainFunction) VOID_TYPE IDENTIFIER:name LPAREN RPAREN LBRACE StatementList RBRACE;

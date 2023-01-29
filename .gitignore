@@ -6,4 +6,6 @@ src/rs/ac/bg/etf/pp1/sym.*
 src/rs/ac/bg/etf/pp1/MJParser.java
 src/rs/ac/bg/etf/pp1/ast/
 
+spec/mjparser_astbuild.cup
+
 *.class

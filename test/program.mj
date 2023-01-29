@@ -1,7 +1,7 @@
-program MJProgram {
+program TabjelaSimbola {
 	
-	const int abuzibaja = 10;
-	char trtibiduba = '?';
+	const int promJenljivaInt = 10;
+	char promjenljivaChar = '?';
 	bool testBool = false;
 	
 	void main() {
