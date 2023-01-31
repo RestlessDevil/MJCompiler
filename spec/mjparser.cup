@@ -50,11 +50,10 @@ terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
 nonterminal Program, Declaration, ConstDeclaration, VarDeclaration,
-	Assignment, Expression,
+	Assignment, CascadingSymbols, Expression, AtomicExpression,
 	GlobalDeclarations, MainFunction, StatementList, Statement;
 
 nonterminal String Type;
-nonterminal java.util.List CascadingSymbols;
 
 start with Program;
 
@@ -73,9 +72,14 @@ VarDeclaration ::= (VarDeclarationNoAssignment) Type IDENTIFIER:symbolName SEMIC
 Type ::= INT_TYPE | BOOL_TYPE | CHAR_TYPE;
 
 Assignment ::= (Assignment) CascadingSymbols Expression;
-CascadingSymbols ::= IDENTIFIER:symbolName ASSIGN | CascadingSymbols IDENTIFIER:symbolName ASSIGN;
+CascadingSymbols ::= (SingleSymbolAssignment) IDENTIFIER:symbolName ASSIGN
+	| (MultipleSymbolAssignment) CascadingSymbols IDENTIFIER:symbolName ASSIGN;
 
-Expression ::= NUMBER | CHAR | TRUE | FALSE;
+Expression ::= AtomicExpression;
+
+AtomicExpression ::= IDENTIFIER | NUMBER | CHAR | TRUE | FALSE;
+
+
 
 MainFunction ::= VOID_TYPE IDENTIFIER:functionName LPAREN RPAREN LBRACE StatementList RBRACE;
 

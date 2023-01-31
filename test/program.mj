@@ -1,4 +1,4 @@
-program TabjelaSimbola {
+program TestniProgramcic {
 	
 	const int testIntConst = test2 = 3;
 	
