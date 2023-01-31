@@ -4,6 +4,8 @@ import java_cup.runtime.*;
 import org.apache.log4j.*;
 import rs.ac.bg.etf.pp1.ast.*;
 
+import java.util.LinkedList;
+
 parser code {:
 
 	Logger log = Logger.getLogger(getClass());  
@@ -40,36 +42,43 @@ scan with {:
 terminal PROGRAM, PRINT, READ;
 terminal PLUS, MINUS, ASTERISK, PERCENT, ASSIGN;
 terminal INCREMENT, DECREMENT;
-terminal SEMICOLON, COMMA, APOS;
+terminal SEMICOLON, COMMA;
 terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQUARE, RSQUARE;
 terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, TRUE, FALSE;
 
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal DeclarationList, StatementList, Statement, PrintStatement, Declaration, ConstDeclaration, VarDeclaration, AssignmentStatement, IntAssignment, CharAssignment, BoolAssignment, MainFunction, BoolValue;
+nonterminal Program, Declaration, ConstDeclaration, VarDeclaration,
+	Assignment, Expression,
+	GlobalDeclarations, MainFunction, StatementList, Statement;
 
-nonterminal Program;
+nonterminal String Type;
+nonterminal java.util.List CascadingSymbols;
 
 start with Program;
 
-Program ::= (Program) PROGRAM IDENTIFIER:name LBRACE DeclarationList MainFunction RBRACE;
+Program ::= (Program) PROGRAM IDENTIFIER:name LBRACE GlobalDeclarations MainFunction RBRACE;
 
-DeclarationList ::= DeclarationList Declaration | /* empty list */;
 
-StatementList ::= StatementList Statement | /* empty list */;
-
-Statement ::= Declaration | PrintStatement;
-PrintStatement ::= (PrintStatement) PRINT LPAREN NUMBER RPAREN SEMICOLON;
+GlobalDeclarations ::= Declaration GlobalDeclarations | /* or empty*/;
 
 Declaration ::= ConstDeclaration | VarDeclaration;
-ConstDeclaration ::= CONST_MODIFIER AssignmentStatement;
-VarDeclaration ::= AssignmentStatement;
 
-AssignmentStatement ::= IntAssignment SEMICOLON | CharAssignment SEMICOLON | BoolAssignment SEMICOLON;
-IntAssignment ::= (IntAssignment) INT_TYPE IDENTIFIER:varName ASSIGN NUMBER:value;
-CharAssignment ::= (CharAssignment) CHAR_TYPE IDENTIFIER:varName ASSIGN CHAR:value;
-BoolAssignment ::= (BoolAssignment) BOOL_TYPE IDENTIFIER:varName ASSIGN BoolValue:value;
-BoolValue ::= TRUE:trueVal | FALSE:falseVal;
-				
-MainFunction ::= (MainFunction) VOID_TYPE IDENTIFIER:name LPAREN RPAREN LBRACE StatementList RBRACE;
+ConstDeclaration ::= (ConstDeclaration) CONST_MODIFIER Type:type Assignment SEMICOLON;
+
+VarDeclaration ::= (VarDeclarationNoAssignment) Type IDENTIFIER:symbolName SEMICOLON
+	| (VarDeclarationWithAssignment) Type:type Assignment SEMICOLON;
+
+Type ::= INT_TYPE | BOOL_TYPE | CHAR_TYPE;
+
+Assignment ::= (Assignment) CascadingSymbols Expression;
+CascadingSymbols ::= IDENTIFIER:symbolName ASSIGN | CascadingSymbols IDENTIFIER:symbolName ASSIGN;
+
+Expression ::= NUMBER | CHAR | TRUE | FALSE;
+
+MainFunction ::= VOID_TYPE IDENTIFIER:functionName LPAREN RPAREN LBRACE StatementList RBRACE;
+
+StatementList ::= Statement StatementList | /* or empty */;
+
+Statement ::= /* TODO: implement */ SEMICOLON;

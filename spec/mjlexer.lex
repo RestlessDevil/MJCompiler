@@ -50,7 +50,6 @@ import java_cup.runtime.Symbol;
 
 ";" 		{ return new_symbol(sym.SEMICOLON, yytext()); }
 "," 		{ return new_symbol(sym.COMMA, yytext()); }
-"'"			{ return new_symbol(sym.APOS, yytext()); }
 
 "(" 		{ return new_symbol(sym.LPAREN, yytext()); }
 ")" 		{ return new_symbol(sym.RPAREN, yytext()); }

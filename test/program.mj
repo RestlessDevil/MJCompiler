@@ -1,10 +1,9 @@
 program TabjelaSimbola {
 	
-	const int promJenljivaInt = 10;
-	char promjenljivaChar = '?';
-	bool testBool = false;
+	const int testIntConst = test2 = 3;
+	
+	bool testBoolVar = false;
 	
 	void main() {
-		print(47);
 	}
 }
