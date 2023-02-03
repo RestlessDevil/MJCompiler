@@ -14,5 +14,6 @@
 	<classpathentry kind="lib" path="/home/vasilije/Development/MicroJavaCompiler/MJCompiler/lib/JFlex.jar"/>
 	<classpathentry kind="lib" path="/home/vasilije/Development/MicroJavaCompiler/MJCompiler/lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="lib" path="/home/vasilije/Development/MicroJavaCompiler/MJCompiler/lib/mj-runtime-1.1.jar"/>
+	<classpathentry kind="lib" path="/home/vasilije/Development/MicroJavaCompiler/MJCompiler/lib/symboltable-1-1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

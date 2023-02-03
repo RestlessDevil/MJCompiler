@@ -3,8 +3,7 @@ package rs.ac.bg.etf.pp1;
 import java_cup.runtime.*;
 import org.apache.log4j.*;
 import rs.ac.bg.etf.pp1.ast.*;
-
-import java.util.LinkedList;
+import rs.etf.pp1.symboltable.concepts.*;
 
 parser code {:
 
@@ -49,15 +48,17 @@ terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal Program, DeclarationList, ConstDecl, ConstValue, VarDecl, VarList, SingleVar,
-			MethodDecl, Method, FormPars, StatementList, Statement, Designator,
-			Expression, Term, Factor, AddOperations, MulOperations, Addop, Mulop;
+nonterminal Program, DeclarationList, ConstDecl, ConstValue, VarDecl, VarSymbolList, VarSymbol,
+			MethodDecl, FormPars, StatementList, Statement,
+			AddOperations, MulOperations, Addop, Mulop;
 
-nonterminal String Type;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramName, Method, Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expression;
 
 start with Program;
 
-Program ::= (Program) PROGRAM IDENTIFIER:name DeclarationList LBRACE MethodDecl RBRACE;
+Program ::= (Program) PROGRAM ProgramName:programName DeclarationList LBRACE MethodDecl RBRACE;
+ProgramName ::= (ProgramName) IDENTIFIER:name;
 
 DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
 				| (DeclarationListWithVar) DeclarationList VarDecl
@@ -65,17 +66,22 @@ DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
 
 ConstDecl ::= (ConstDeclaration) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN ConstValue SEMICOLON;
 
-VarDecl ::=  (VarDeclaration) Type:typeName VarList SEMICOLON;
-VarList ::= VarList COMMA SingleVar | SingleVar;
-SingleVar ::= (VarWithValue) IDENTIFIER:symbolName ASSIGN ConstValue
+VarDecl ::=  (VarDeclaration) Type:typeName VarSymbolList:varSymbols SEMICOLON;
+VarSymbolList ::= (VarSymbols) VarSymbolList COMMA VarSymbol:varSymbol
+			| (VarSymbolSingle) VarSymbol;
+VarSymbol ::= (VarWithValue) IDENTIFIER:symbolName ASSIGN ConstValue
 			| (VarNoValue) IDENTIFIER:symbolName
 			| (VarArray) IDENTIFIER:symbolName LSQUARE RSQUARE;
 
 ConstValue ::= (ConstValueInt) NUMBER:value | (ConstValueChar) CHAR:value;
-Type ::= INT_TYPE | BOOL_TYPE | CHAR_TYPE;
+Type ::= (TypeVoid) VOID_TYPE
+		| (TypeInt) INT_TYPE
+		| (TypeChar) CHAR_TYPE
+		| (TypeBool) BOOL_TYPE
+		| (TypeClass) IDENTIFIER:typeName;
 
 MethodDecl ::= (MethodList) MethodDecl Method | (MethodListEmpty) /* or empty */;
-Method ::= (Method) VOID_TYPE IDENTIFIER:methodName LPAREN FormPars RPAREN DeclarationList LBRACE StatementList RBRACE; /* TODO: EXPAND */
+Method ::= (Method) Type:typeName IDENTIFIER:methodName LPAREN FormPars RPAREN DeclarationList LBRACE StatementList RBRACE; /* TODO: EXPAND */
 FormPars ::= (FormalParameters) /* empty for now */;
 
 StatementList ::= StatementList Statement | /* or empty */;
