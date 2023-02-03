@@ -1,9 +1,10 @@
-program TestniProgramcic {
+program TestniProgramcic 
+
+	const int testConst = 3;
+	char testVar = 'a', testVarB = 'b';
 	
-	const int testIntConst = test2 = 3;
-	
-	bool testBoolVar = false;
-	
+{
 	void main() {
+		int testIntVar = 10;
 	}
 }

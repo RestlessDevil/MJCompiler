@@ -39,8 +39,8 @@ scan with {:
 	return s;
 :}
 
-terminal PROGRAM, PRINT, READ;
-terminal PLUS, MINUS, ASTERISK, PERCENT, ASSIGN;
+terminal PROGRAM, PRINT, READ, NEW;
+terminal PLUS, MINUS, ASTERISK, SLASH, PERCENT, ASSIGN;
 terminal INCREMENT, DECREMENT;
 terminal SEMICOLON, COMMA;
 terminal LPAREN, RPAREN, LBRACE, RBRACE, LSQUARE, RSQUARE;
@@ -49,40 +49,56 @@ terminal CONST_MODIFIER, VOID_TYPE, INT_TYPE, CHAR_TYPE, BOOL_TYPE, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal Program, Declaration, ConstDeclaration, VarDeclaration,
-	Assignment, CascadingSymbols, Expression, AtomicExpression,
-	GlobalDeclarations, MainFunction, StatementList, Statement;
+nonterminal Program, DeclarationList, ConstDecl, ConstValue, VarDecl, VarList, SingleVar,
+			MethodDecl, Method, FormPars, StatementList, Statement, Designator,
+			Expression, Term, Factor, AddOperations, MulOperations, Addop, Mulop;
 
 nonterminal String Type;
 
 start with Program;
 
-Program ::= (Program) PROGRAM IDENTIFIER:name LBRACE GlobalDeclarations MainFunction RBRACE;
+Program ::= (Program) PROGRAM IDENTIFIER:name DeclarationList LBRACE MethodDecl RBRACE;
 
+DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
+				| (DeclarationListWithVar) DeclarationList VarDecl
+				| (DeclarationListEmpty) /* or empty */;
 
-GlobalDeclarations ::= Declaration GlobalDeclarations | /* or empty*/;
+ConstDecl ::= (ConstDeclaration) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN ConstValue SEMICOLON;
 
-Declaration ::= ConstDeclaration | VarDeclaration;
+VarDecl ::=  (VarDeclaration) Type:typeName VarList SEMICOLON;
+VarList ::= VarList COMMA SingleVar | SingleVar;
+SingleVar ::= (VarWithValue) IDENTIFIER:symbolName ASSIGN ConstValue
+			| (VarNoValue) IDENTIFIER:symbolName
+			| (VarArray) IDENTIFIER:symbolName LSQUARE RSQUARE;
 
-ConstDeclaration ::= (ConstDeclaration) CONST_MODIFIER Type:type Assignment SEMICOLON;
-
-VarDeclaration ::= (VarDeclarationNoAssignment) Type IDENTIFIER:symbolName SEMICOLON
-	| (VarDeclarationWithAssignment) Type:type Assignment SEMICOLON;
-
+ConstValue ::= (ConstValueInt) NUMBER:value | (ConstValueChar) CHAR:value;
 Type ::= INT_TYPE | BOOL_TYPE | CHAR_TYPE;
 
-Assignment ::= (Assignment) CascadingSymbols Expression;
-CascadingSymbols ::= (SingleSymbolAssignment) IDENTIFIER:symbolName ASSIGN
-	| (MultipleSymbolAssignment) CascadingSymbols IDENTIFIER:symbolName ASSIGN;
+MethodDecl ::= (MethodList) MethodDecl Method | (MethodListEmpty) /* or empty */;
+Method ::= (Method) VOID_TYPE IDENTIFIER:methodName LPAREN FormPars RPAREN DeclarationList LBRACE StatementList RBRACE; /* TODO: EXPAND */
+FormPars ::= (FormalParameters) /* empty for now */;
 
-Expression ::= AtomicExpression;
+StatementList ::= StatementList Statement | /* or empty */;
+Statement ::= (StatementAssign) Designator ASSIGN Expression SEMICOLON
+			| (StatementIncrement) Designator INCREMENT SEMICOLON
+			| (StatementDecrement) Designator DECREMENT SEMICOLON
+			| (StatementPrint) PRINT LPAREN Expression RPAREN SEMICOLON
+			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
+			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
 
-AtomicExpression ::= IDENTIFIER | NUMBER | CHAR | TRUE | FALSE;
+Designator ::= IDENTIFIER:designatorName | IDENTIFIER LSQUARE Expression RSQUARE;
 
 
+Expression ::= MINUS Term AddOperations | Term AddOperations;
 
-MainFunction ::= VOID_TYPE IDENTIFIER:functionName LPAREN RPAREN LBRACE StatementList RBRACE;
+AddOperations ::= AddOperations Addop Term | /* or empty */;
 
-StatementList ::= Statement StatementList | /* or empty */;
+Addop ::= PLUS | MINUS;
 
-Statement ::= /* TODO: implement */ SEMICOLON;
+Term ::= Factor MulOperations;
+
+MulOperations ::= MulOperations Mulop Factor | /* or empty */;
+
+Mulop ::= ASTERISK | SLASH | PERCENT;
+
+Factor ::= ConstValue | Designator | LPAREN Expression RPAREN;

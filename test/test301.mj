@@ -31,16 +31,16 @@ program test301
 		print(niz[2]);
 		
 		
-		[a,b] = niz;
+		//[a,b] = niz; // Namerna greska 1
 		print(a);	// niz[0] -> 1
 		print(b);	// niz[1] -> 2
 		
 		
-		[,a,] = niz;
+		//[,a,] = niz; // Namerna greska 2
 		print(a);	// niz[1] -> 2
 
 		niz2 = new int[2];
-		[niz2[0],,niz2[niz[nula]]] = niz;
+		//[niz2[0],,niz2[niz[nula]]] = niz; // Namerna greska 3
 
 		print(niz2[0]);	// niz[0] -> 1
 		print(niz2[1]); // niz[2] -> 6 
