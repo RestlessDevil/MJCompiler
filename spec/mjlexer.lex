@@ -61,10 +61,6 @@ import java_cup.runtime.Symbol;
 
 "new"		{ return new_symbol(sym.NEW, yytext()); }
 "const"		{ return new_symbol(sym.CONST_MODIFIER, yytext()); }
-"void" 		{ return new_symbol(sym.VOID_TYPE, yytext()); }
-"int"		{ return new_symbol(sym.INT_TYPE, yytext()); }
-"char"		{ return new_symbol(sym.CHAR_TYPE, yytext()); }
-"bool"		{ return new_symbol(sym.BOOL_TYPE, yytext()); }
 "true"		{ return new_symbol(sym.TRUE, yytext()); }
 "false"		{ return new_symbol(sym.FALSE, yytext()); }
 

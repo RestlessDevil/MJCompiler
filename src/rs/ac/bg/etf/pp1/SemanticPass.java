@@ -16,8 +16,24 @@ public class SemanticPass extends VisitorAdaptor {
 		Tab.closeScope();
 	}
 
+	private static void processSingleSymbol(Type type, VarSymbol symbol) {
+		System.out.println("OBRADJUJEM SIMBOL " + symbol);
+		//report_info("Deklarisana promenljiva " + varDecl.getVarName(), varDecl);
+		//Obj varNode = Tab.insert(Obj.Var, varDecl.getVarName(), type.struct);
+	}
+
+	private static void processSymbols(Type type, VarSymbolList symbols) {
+		if (symbols instanceof VarSymbols) {
+			processSymbols(type, ((VarSymbols) symbols).getVarSymbolList());
+			processSingleSymbol(type, ((VarSymbols) symbols).getVarSymbol());
+		} else {
+			processSingleSymbol(type, ((VarSymbolSingle) symbols).getVarSymbol());
+		}
+	}
+
 	public void visit(VarDeclaration varDeclaration) {
-		System.out.println("VAR DETECTED " + varDeclaration.getType());
+		Type type = varDeclaration.getType();
+		processSymbols(type, varDeclaration.getVarSymbolList());
 	}
 
 }
