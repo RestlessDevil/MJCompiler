@@ -48,16 +48,16 @@ terminal CONST_MODIFIER, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal Program, DeclarationList, ConstDecl, ConstValue, VarDecl, VarSymbolList, VarSymbol,
-			MethodDecl, FormPars, StatementList, Statement,
+nonterminal DeclarationList, ConstDecl, ConstValue, VarDecl, VarSymbolList, VarSymbol,
+			MethodList, FormPars, StatementList, Statement,
 			AddOperations, MulOperations, Addop, Mulop;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgramName, Method, Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgramName, Method, MethodTypeName, Designator;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expression;
 
 start with Program;
 
-Program ::= (Program) PROGRAM ProgramName:programName DeclarationList LBRACE MethodDecl RBRACE;
+Program ::= (Program) PROGRAM ProgramName:programName DeclarationList LBRACE MethodList RBRACE;
 ProgramName ::= (ProgramName) IDENTIFIER:name;
 
 DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
@@ -76,8 +76,9 @@ VarSymbol ::= (VarWithValue) IDENTIFIER:symbolName ASSIGN ConstValue
 ConstValue ::= (ConstValueInt) NUMBER:value | (ConstValueChar) CHAR:value;
 Type ::= (Type) IDENTIFIER:typeName;
 
-MethodDecl ::= (MethodList) MethodDecl Method | (MethodListEmpty) /* or empty */;
-Method ::= (Method) Type:typeName IDENTIFIER:methodName LPAREN FormPars RPAREN DeclarationList LBRACE StatementList RBRACE; /* TODO: EXPAND */
+MethodList ::= (Methods) MethodList Method | (MethodListEmpty) /* or empty */;
+Method ::= (Method) MethodTypeName:methodTypeName LPAREN FormPars RPAREN DeclarationList LBRACE StatementList RBRACE;
+MethodTypeName ::= (MethodTypeName) Type:returnType IDENTIFIER:name;
 FormPars ::= (FormalParameters) /* empty for now */;
 
 StatementList ::= StatementList Statement | /* or empty */;

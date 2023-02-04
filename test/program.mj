@@ -1,10 +1,11 @@
 program TestniProgramcic 
 
 	const int testConst = 3;
-	char testVar = 'a', testVarB = 'b';
 	
 {
-	void main() {
-		int testIntVar = 10;
+	void main()
+		int testIntVar;
+	{
+		testIntVar = 10;
 	}
 }
