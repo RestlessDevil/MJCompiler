@@ -19,7 +19,7 @@ public class SemanticPass extends VisitorAdaptor {
 	}
 
 	public void visit(Program program) {
-		// int nVars = Tab.currentScope.getnVars();
+		int nVars = Tab.currentScope.getnVars();
 		Tab.chainLocalSymbols(program.getProgramName().obj);
 		Tab.closeScope();
 	}
@@ -62,7 +62,6 @@ public class SemanticPass extends VisitorAdaptor {
 		case "VarWithValue":
 			symbolName = ((VarWithValue) symbol).getSymbolName();
 			varNode = Tab.insert(Obj.Var, symbolName, typeStruct);
-			// TODO: implement value Assignment (int || char)
 
 			LOG.info("Detektovan simbol " + symbolName + " tipa " + type.getTypeName() + " sa dodelom vrednosti "
 					+ ((VarWithValue) symbol).getConstValue() + " koja jos nije podrzana");
@@ -85,12 +84,12 @@ public class SemanticPass extends VisitorAdaptor {
 	}
 
 	public void visit(MethodTypeName methodTypeName) {
-		// currentMethod = Tab.insert(Obj.Meth, methodTypeName.getName(),
-		// methodTypeName.getType().struct);
+		// TODO: samo je void podrzan, zato je Struct.NONE
+		currentMethod = Tab.insert(Obj.Meth, methodTypeName.getName(), new Struct(Struct.None));
 		LOG.info("Processing method " + methodTypeName.getName() + " which returns "
 				+ methodTypeName.getType().getTypeName());
 		methodTypeName.obj = currentMethod;
-		// Tab.openScope();
+		Tab.openScope();
 		// report_info("Obradjuje se funkcija " + methodTypeName.getName(),
 		// methodTypeName);
 	}
@@ -100,8 +99,8 @@ public class SemanticPass extends VisitorAdaptor {
 		// report_error("Semanticka greska na liniji " + methodDecl.getLine() + ":
 		// funkcija " + currentMethod.getName() + " nema return iskaz!", null);
 		// }
-		// Tab.chainLocalSymbols(currentMethod);
-		// Tab.closeScope();
+		Tab.chainLocalSymbols(currentMethod);
+		Tab.closeScope();
 
 		currentMethod = null;
 	}
