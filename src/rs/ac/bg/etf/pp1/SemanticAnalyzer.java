@@ -7,9 +7,9 @@ import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
-public class SemanticPass extends VisitorAdaptor {
+public class SemanticAnalyzer extends VisitorAdaptor {
 
-	private static final Logger LOG = Logger.getLogger(SemanticPass.class);
+	private static final Logger LOG = Logger.getLogger(SemanticAnalyzer.class);
 
 	private int numberOfErrors = 0;
 	private Obj currentMethod = null;
@@ -131,7 +131,37 @@ public class SemanticPass extends VisitorAdaptor {
 	private void checkSymbol(String symbolName, SyntaxNode node) {
 		Obj fromTable = Tab.find(symbolName);
 		if (fromTable != Tab.noObj) {
-			LOG.debug("Simbol " + symbolName + " se nalazi u tabeli simbola");
+			String type = "";
+			switch (fromTable.getType().getKind()) {
+			case 1: // int
+				type = "int";
+				break;
+			case 2: // char
+				type = "char";
+				break;
+			case 3: // array
+				type = "niz";
+				switch (fromTable.getType().getElemType().getKind()) {
+				case 1:
+					type += " int-ova";
+					break;
+				case 2:
+					type += " char-ova";
+					break;
+				case 4:
+					type += " objekata klase";
+					break;
+				}
+				break;
+			case 4: // class (not implemented)
+				break;
+			case 5:
+				type = "bool";
+			}
+
+			LOG.info("Koriscenje " + (fromTable.getLevel() > 0 ? "lokalne" : "globalne") + " "
+					+ (fromTable.getKind() == 0 ? "konstante" : "varijable") + " " + symbolName + " tipa " + type
+					+ " na liniji " + node.getLine());
 		} else {
 			reportError("Simbol " + symbolName + " je koriscen, ali nije prethodno deklarisan", node);
 		}
@@ -167,9 +197,7 @@ public class SemanticPass extends VisitorAdaptor {
 				charExpression = Tab.find(designatorName).getType().getElemType().getKind() == Tab.charType.getKind();
 
 				if (!(charExpression && inPrintStatement)) {
-					reportError(
-							"Element niza " + designatorName
-									+ " mora biti tipa int da bi figurisao u izrazu osim za char u print naredbi",
+					reportError("Element niza " + designatorName + " mora biti tipa int da bi figurisao u izrazu",
 							factorDesignator);
 				}
 			}
