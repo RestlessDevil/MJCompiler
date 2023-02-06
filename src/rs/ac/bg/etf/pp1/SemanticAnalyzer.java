@@ -133,7 +133,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		currentMethod = null;
 	}
 
-	private void checkSymbol(String symbolName, SyntaxNode node) {
+	private Obj checkSymbol(String symbolName, SyntaxNode node) {
 		Obj fromTable = Tab.find(symbolName);
 		if (fromTable != Tab.noObj) {
 			String type = "";
@@ -170,14 +170,16 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		} else {
 			reportError("Simbol " + symbolName + " je koriscen, ali nije prethodno deklarisan", node);
 		}
+
+		return fromTable;
 	}
 
 	public void visit(SimpleDesignator designator) {
-		checkSymbol(designator.getDesignatorName(), designator);
+		designator.obj = checkSymbol(designator.getDesignatorName(), designator);
 	}
 
 	public void visit(ArrayElementDesignator designator) {
-		checkSymbol(designator.getArrayName(), designator);
+		designator.obj = checkSymbol(designator.getArrayName(), designator);
 	}
 
 	public void visit(FactorDesignator factorDesignator) {

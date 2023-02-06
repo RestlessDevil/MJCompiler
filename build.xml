@@ -7,6 +7,7 @@
 				<exclude name="MJCompiler.java" />
 				<exclude name="SemanticAnalyzer.java" />
 				<exclude name="CodeGenerator.java" />
+				<exclude name="CounterVisitor.java" />
 				<exclude name="util/Log4JUtils.java" />
 				<exclude name="Yylex.java" />
 			</fileset>
@@ -56,7 +57,26 @@
 				<pathelement path="lib/mj-runtime-1.1.jar" />
 			</classpath>
 		</javac>
+	</target>
 
+	<target name="disasm">
+		<java classname="rs.etf.pp1.mj.runtime.disasm" fork="true">
+			<jvmarg value="-Djava.security.manager=allow" />
+			<arg value="test/test301.obj" />
+			<classpath>
+				<pathelement location="lib/mj-runtime-1.1.jar" />
+			</classpath>
+		</java>
+	</target>
+
+	<target name="runObj" depends="disasm">
+		<java classname="rs.etf.pp1.mj.runtime.Run" fork="true">
+			<jvmarg value="-Djava.security.manager=allow" />
+			<arg value="test/test301.obj" />
+			<classpath>
+				<pathelement location="lib/mj-runtime-1.1.jar" />
+			</classpath>
+		</java>
 	</target>
 
 </project>

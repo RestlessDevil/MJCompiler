@@ -76,6 +76,10 @@ public class MJCompiler {
 			Code.dataSize = semanticAnalyzer.getNumberOfVars();
 			Code.mainPc = codeGenerator.getMainPc();
 
+			if (objFile.exists()) {
+				objFile.delete();
+			}
+
 			LOG.info("Writing to " + objFile.getPath());
 			try (OutputStream outputStream = new FileOutputStream(objFile)) {
 				Code.write(outputStream);

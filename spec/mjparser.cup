@@ -95,14 +95,14 @@ Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
 
 Expression ::= MINUS Term AddOperations | Term AddOperations;
 
-AddOperations ::= AddOperations Addop Term | /* or empty */;
+AddOperations ::= (AddExpr) AddOperations Addop:operator Term | /* or empty */;
 
-Addop ::= PLUS | MINUS;
+Addop ::= (Plus) PLUS | (Minus) MINUS;
 
 Term ::= Factor MulOperations;
 
-MulOperations ::= MulOperations Mulop Factor | /* or empty */;
+MulOperations ::= (MulExpr) MulOperations Mulop:operator Factor | /* or empty */;
 
-Mulop ::= ASTERISK | SLASH | PERCENT;
+Mulop ::= (Times) ASTERISK | (Divide) SLASH | (Mod) PERCENT;
 
-Factor ::= NUMBER:value | (FactorDesignator) Designator:symbolName | LPAREN Expression RPAREN;
+Factor ::= (Constant) NUMBER:value | (FactorDesignator) Designator:symbolName | LPAREN Expression RPAREN;
