@@ -48,12 +48,12 @@ terminal CONST_MODIFIER, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal DeclarationList, ConstDecl, ConstValue, VarDecl, VarSymbolList, VarSymbol,
+nonterminal DeclarationList, ConstValue, VarDecl, VarSymbolList,
 			MethodList, FormPars, StatementList, Statement,
 			AddOperations, MulOperations, Addop, Mulop;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgramName, Method, MethodTypeName, Designator;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, Term, Factor, Expression;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDecl, VarSymbol, Term, Factor, Expression;
 
 start with Program;
 
@@ -89,7 +89,8 @@ Statement ::= (StatementAssign) Designator ASSIGN Expression SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
 			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
 
-Designator ::= IDENTIFIER:designatorName | IDENTIFIER LSQUARE Expression RSQUARE;
+Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
+			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;
 
 
 Expression ::= MINUS Term AddOperations | Term AddOperations;
@@ -104,4 +105,4 @@ MulOperations ::= MulOperations Mulop Factor | /* or empty */;
 
 Mulop ::= ASTERISK | SLASH | PERCENT;
 
-Factor ::= ConstValue | Designator | LPAREN Expression RPAREN;
+Factor ::= ConstValue | (FactorDesignator) Designator:symbolName | LPAREN Expression RPAREN;
