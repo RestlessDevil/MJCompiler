@@ -9,6 +9,8 @@ program test301
 	int niz[], niz2[], a, b;
 	char nizch[];
 	
+	char probaPrinta;
+	
 {
 	void main()	
 		int bodovi;
@@ -53,6 +55,12 @@ program test301
 		nizch[pet - 3] = 'c';
 		print(nizch[1]);
 		print(nizch[jedan * 2]);
+		
+		print('a'); // ja dodao
+		print(1);
+		
+		probaPrinta = 'd';
+		print(probaPrinta);
 			
 		
 		read(bodovi);

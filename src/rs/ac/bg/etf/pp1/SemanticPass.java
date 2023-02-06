@@ -11,15 +11,15 @@ public class SemanticPass extends VisitorAdaptor {
 
 	private static final Logger LOG = Logger.getLogger(SemanticPass.class);
 
-	private boolean detectedErrors = false;
+	private int numberOfErrors = 0;
 	private Obj currentMethod = null;
 
-	public boolean isDetectedErrors() {
-		return detectedErrors;
+	public int getNumberOfErrors() {
+		return numberOfErrors;
 	}
 
 	private void reportError(String message, SyntaxNode info) {
-		detectedErrors = true;
+		numberOfErrors++;
 		StringBuilder msg = new StringBuilder(message);
 		int line = (info == null) ? 0 : info.getLine();
 		if (line != 0)
@@ -77,19 +77,11 @@ public class SemanticPass extends VisitorAdaptor {
 			LOG.info("Detektovan simbol " + symbolName + " koji predstavlja niz tipa " + type.getTypeName());
 			break;
 
-		case "VarNoValue":
-			symbolName = ((VarNoValue) symbol).getSymbolName();
+		case "VarSimple":
+			symbolName = ((VarSimple) symbol).getSymbolName();
 			varNode = Tab.insert(Obj.Var, symbolName, typeStruct);
 
 			LOG.info("Detektovan simbol " + symbolName + " tipa " + type.getTypeName());
-			break;
-
-		case "VarWithValue":
-			symbolName = ((VarWithValue) symbol).getSymbolName();
-			varNode = Tab.insert(Obj.Var, symbolName, typeStruct);
-
-			LOG.info("Detektovan simbol " + symbolName + " tipa " + type.getTypeName() + " sa dodelom vrednosti "
-					+ ((VarWithValue) symbol).getConstValue() + " koja jos nije podrzana");
 			break;
 		}
 
@@ -154,21 +146,36 @@ public class SemanticPass extends VisitorAdaptor {
 	}
 
 	public void visit(FactorDesignator factorDesignator) {
-		String designatorName;
+		boolean inPrintStatement = "StatementPrintExpression"
+				.equals(factorDesignator.getParent().getParent().getParent().getClass().getSimpleName());
+		boolean charExpression;
 
+		String designatorName;
 		switch (factorDesignator.getDesignator().getClass().getSimpleName()) {
 		case "SimpleDesignator":
 			designatorName = ((SimpleDesignator) factorDesignator.getDesignator()).getDesignatorName();
+			if (Tab.find(designatorName).getType().getKind() != Tab.intType.getKind()) {
+				charExpression = Tab.find(designatorName).getType().getKind() == Tab.charType.getKind();
+				if (!(charExpression && inPrintStatement)) {
+					reportError(designatorName + " mora biti tipa int da bi figurisao u izrazu", factorDesignator);
+				}
+			}
 			break;
 		case "ArrayElementDesignator":
 			designatorName = ((ArrayElementDesignator) factorDesignator.getDesignator()).getArrayName();
+			if (Tab.find(designatorName).getType().getElemType().getKind() != Tab.intType.getKind()) {
+				charExpression = Tab.find(designatorName).getType().getElemType().getKind() == Tab.charType.getKind();
+
+				if (!(charExpression && inPrintStatement)) {
+					reportError(
+							"Element niza " + designatorName
+									+ " mora biti tipa int da bi figurisao u izrazu osim za char u print naredbi",
+							factorDesignator);
+				}
+			}
 			break;
 		default:
 			designatorName = null; // Nek puknu dusmani
-		}
-
-		if (Tab.find(designatorName).getType() != Tab.intType) {
-			reportError(designatorName + " mora biti tipa int da bi figurisao u izrazu", factorDesignator);
 		}
 	}
 }

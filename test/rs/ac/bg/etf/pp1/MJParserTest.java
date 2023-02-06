@@ -30,7 +30,7 @@ public class MJParserTest {
 		Reader br = null;
 		try {
 			File sourceCode = new File("test/test301.mj");
-			//File sourceCode = new File("test/program.mj");
+			// File sourceCode = new File("test/program.mj");
 			log.info("Compiling source file: " + sourceCode.getAbsolutePath());
 
 			br = new BufferedReader(new FileReader(sourceCode));
@@ -47,16 +47,23 @@ public class MJParserTest {
 			// ispis prepoznatih programskih konstrukcija
 			RuleVisitor v = new RuleVisitor();
 			prog.traverseBottomUp(v);
-			
+
 			log.info("===================================");
 			Tab.init();
 			SemanticPass semanticPass = new SemanticPass();
 			prog.traverseBottomUp(semanticPass);
 			Tab.dump();
 
-			//log.info(" Print count calls = " + v.printCallCount);
+			// log.info(" Print count calls = " + v.printCallCount);
 
 			// log.info(" Deklarisanih promenljivih ima = " + v.varDeclCount);
+
+			if (semanticPass.getNumberOfErrors() > 0) {
+				log.info("Semantički prolaz je detektovao " + semanticPass.getNumberOfErrors() + " gresaka");
+			} else {
+				log.info("Program " + prog.getProgramName().getName() + " je semanticki ispravan");
+			}
+			log.info("===================================");
 
 		} finally {
 			if (br != null)

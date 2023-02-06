@@ -48,7 +48,7 @@ terminal CONST_MODIFIER, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal DeclarationList, ConstValue, VarDecl, VarSymbolList,
+nonterminal DeclarationList, VarDecl, VarSymbolList,
 			MethodList, FormPars, StatementList, Statement,
 			AddOperations, MulOperations, Addop, Mulop;
 
@@ -64,16 +64,14 @@ DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
 				| (DeclarationListWithVar) DeclarationList VarDecl
 				| (DeclarationListEmpty) /* or empty */;
 
-ConstDecl ::= (ConstDeclaration) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN ConstValue SEMICOLON;
+ConstDecl ::= (ConstDeclaration) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN NUMBER:value SEMICOLON;
 
 VarDecl ::=  (VarDeclaration) Type:typeName VarSymbolList:varSymbols SEMICOLON;
 VarSymbolList ::= (VarSymbols) VarSymbolList COMMA VarSymbol:varSymbol
 			| (VarSymbolSingle) VarSymbol:varSymbol;
-VarSymbol ::= (VarWithValue) IDENTIFIER:symbolName ASSIGN ConstValue
-			| (VarNoValue) IDENTIFIER:symbolName
+VarSymbol ::= (VarSimple) IDENTIFIER:symbolName
 			| (VarArray) IDENTIFIER:symbolName LSQUARE RSQUARE;
 
-ConstValue ::= (ConstValueInt) NUMBER:value | (ConstValueChar) CHAR:value;
 Type ::= (Type) IDENTIFIER:typeName;
 
 MethodList ::= (Methods) MethodList Method | (MethodListEmpty) /* or empty */;
@@ -82,10 +80,12 @@ MethodTypeName ::= (MethodTypeName) Type:returnType IDENTIFIER:name;
 FormPars ::= (FormalParameters) /* empty for now */;
 
 StatementList ::= StatementList Statement | /* or empty */;
-Statement ::= (StatementAssign) Designator ASSIGN Expression SEMICOLON
+Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
+			| (StatementAssignChar) Designator ASSIGN CHAR SEMICOLON
 			| (StatementIncrement) Designator INCREMENT SEMICOLON
 			| (StatementDecrement) Designator DECREMENT SEMICOLON
-			| (StatementPrint) PRINT LPAREN Expression RPAREN SEMICOLON
+			| (StatementPrintExpression) PRINT LPAREN Expression RPAREN SEMICOLON
+			| (StatementPrintChar) PRINT LPAREN CHAR:value RPAREN SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
 			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
 
@@ -105,4 +105,4 @@ MulOperations ::= MulOperations Mulop Factor | /* or empty */;
 
 Mulop ::= ASTERISK | SLASH | PERCENT;
 
-Factor ::= ConstValue | (FactorDesignator) Designator:symbolName | LPAREN Expression RPAREN;
+Factor ::= NUMBER:value | (FactorDesignator) Designator:symbolName | LPAREN Expression RPAREN;
