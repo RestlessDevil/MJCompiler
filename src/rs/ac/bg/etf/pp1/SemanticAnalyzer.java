@@ -11,8 +11,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 	private static final Logger LOG = Logger.getLogger(SemanticAnalyzer.class);
 
+	public int numberOfVars = 0;
 	private int numberOfErrors = 0;
 	private Obj currentMethod = null;
+
+	public int getNumberOfVars() {
+		return numberOfVars;
+	}
 
 	public int getNumberOfErrors() {
 		return numberOfErrors;
@@ -43,7 +48,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	public void visit(Program program) {
-		int nVars = Tab.currentScope.getnVars();
+		numberOfVars = Tab.currentScope.getnVars();
 		Tab.chainLocalSymbols(program.getProgramName().obj);
 		Tab.closeScope();
 	}
