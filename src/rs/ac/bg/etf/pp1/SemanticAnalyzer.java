@@ -212,5 +212,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		default:
 			designatorName = null; // Nek puknu dusmani
 		}
+		factorDesignator.getDesignator().obj = Tab.find(designatorName);
 	}
 }

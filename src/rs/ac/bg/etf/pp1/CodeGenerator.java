@@ -13,22 +13,13 @@ public class CodeGenerator extends VisitorAdaptor {
 		return mainPC;
 	}
 
-	public void visit(StatementPrintExpression printStmt) {
-		if (printStmt.getExpression().struct == Tab.intType) {
-			Code.loadConst(5);
-			Code.put(Code.print);
+	public void visit(StatementAllocateArray saa) {
+		Code.put(Code.newarray);
+		if (saa.getType().struct == Tab.charType) {
+			Code.put(0);
 		} else {
-			Code.loadConst(1);
-			Code.put(Code.bprint);
+			Code.put(1);
 		}
-	}
-
-	public void visit(Constant constant) {
-		Obj con = Tab.insert(Obj.Con, "$", constant.struct);
-		con.setLevel(0);
-		con.setAdr(constant.getValue());
-
-		Code.load(con);
 	}
 
 	public void visit(MethodTypeName methodTypeName) {
@@ -59,11 +50,8 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.store(assignment.getDesignator().obj);
 	}
 
-	public void visit(Designator designator) {
-		SyntaxNode parent = designator.getParent();
-		if (FactorDesignator.class != parent.getClass()) {
-			Code.load(designator.obj);
-		}
+	public void visit(StatementAssignChar assignment) {
+		Code.store(assignment.getDesignator().obj);
 	}
 
 	public void visit(AddExpr addExpr) {
@@ -74,6 +62,20 @@ public class CodeGenerator extends VisitorAdaptor {
 		case "Minus":
 			Code.put(Code.sub);
 		}
+	}
+
+	public void visit(StatementIncrement increment) {
+		Code.load(increment.getDesignator().obj);
+		Code.loadConst(1);
+		Code.put(Code.add);
+		Code.store(increment.getDesignator().obj);
+	}
+
+	public void visit(StatementDecrement decrement) {
+		Code.load(decrement.getDesignator().obj);
+		Code.loadConst(1);
+		Code.put(Code.sub);
+		Code.store(decrement.getDesignator().obj);
 	}
 
 	public void visit(MulExpr mulExpr) {
@@ -87,5 +89,37 @@ public class CodeGenerator extends VisitorAdaptor {
 		case "Mod":
 			Code.put(Code.rem);
 		}
+	}
+
+	// Factor
+	public void visit(NumericConstant constant) {
+		Obj con = Tab.insert(Obj.Con, "$", constant.struct);
+		con.setLevel(0);
+		con.setAdr(constant.getValue());
+
+		Code.load(con);
+	}
+
+	public void visit(CharConstant constant) {
+		Obj con = Tab.insert(Obj.Con, "$", constant.struct);
+		con.setLevel(0);
+		con.setAdr((int) constant.getValue().charAt(1));
+
+		Code.load(con);
+	}
+
+	public void visit(FactorDesignator designator) {
+		Code.load(designator.getDesignator().obj);
+	}
+
+	// Print
+	public void visit(StatementPrintExpression spe) {
+		Code.loadConst(5);
+		Code.put(Code.print);
+	}
+
+	public void visit(StatementPrintChar spc) {
+		Code.loadConst(5);
+		Code.put(Code.bprint);
 	}
 }
