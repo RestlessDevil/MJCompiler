@@ -35,7 +35,7 @@ public class MJCompiler {
 
 		LOG.info("MJCompiler v0.1 - RAJOVIC");
 
-		File sourceFile = new File("test/test301.mj");
+		File sourceFile = new File(args[0]);
 		File objFile;
 		if (sourceFile.getAbsolutePath().endsWith(".mj")) {
 			objFile = new File(
@@ -71,7 +71,8 @@ public class MJCompiler {
 			LOG.info("Ukupno globalnih promenljivih: " + semanticAnalyzer.getNumberOfVars());
 			LOG.info("===================================");
 			CodeGenerator codeGenerator = new CodeGenerator();
-			prog.traverseBottomUp(codeGenerator);
+			// TODO: uncomment
+			//prog.traverseBottomUp(codeGenerator);
 
 			Code.dataSize = semanticAnalyzer.getNumberOfVars();
 			Code.mainPc = codeGenerator.getMainPc();

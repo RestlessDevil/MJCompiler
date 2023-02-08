@@ -46,25 +46,25 @@ terminal CONST_MODIFIER, TRUE, FALSE;
 terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
-nonterminal DeclarationList, VarDecl, VarSymbolList,
+nonterminal DeclarationList, VarSymbolList,
 			MethodList, FormPars, StatementList, Statement,
 			AddOperations, MulOperations, Addop, Mulop;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgramName, Method, MethodTypeName, Designator;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDecl, VarSymbol, Term, Factor, Expression, CharConstant;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgramName, ConstSymbol, VarSymbol, Method, MethodTypeName, Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, VarDecl, Term, Factor, Expression, CharConstant;
 
 start with Program;
 
 Program ::= (Program) PROGRAM ProgramName:programName DeclarationList LBRACE MethodList RBRACE;
 ProgramName ::= (ProgramName) IDENTIFIER:name;
 
-DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstDecl
+DeclarationList ::= (DeclarationListWithConst) DeclarationList ConstSymbol
 				|	(DeclarationListWithVar) DeclarationList VarDecl
 				|	(DeclarationListEmpty) /* or empty */;
 
-ConstDecl ::= (ConstDeclaration) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN NUMBER:value SEMICOLON;
+ConstSymbol ::= (DeclarationConst) CONST_MODIFIER Type:typeName IDENTIFIER:symbolName ASSIGN NUMBER:value SEMICOLON;
 
-VarDecl ::=  (VarDeclaration) Type:typeName VarSymbolList:varSymbols SEMICOLON;
+VarDecl ::=  (DeclarationVar) Type:typeName VarSymbolList:varSymbols SEMICOLON;
 VarSymbolList ::= (VarSymbols) VarSymbolList COMMA VarSymbol:varSymbol
 				| (VarSymbolSingle) VarSymbol:varSymbol;
 			
