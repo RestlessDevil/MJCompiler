@@ -4,8 +4,7 @@ import org.apache.log4j.Logger;
 
 import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.symboltable.Tab;
-import rs.etf.pp1.symboltable.concepts.Obj;
-import rs.etf.pp1.symboltable.concepts.Struct;
+import rs.etf.pp1.symboltable.concepts.*;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
 
@@ -53,69 +52,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		Tab.closeScope();
 	}
 
-	private static void processSingleSymbol(Type type, VarSymbol symbol) {
-
-		String symbolName;
-		Struct typeStruct;
-		switch (type.getTypeName()) {
-		case "int":
-			typeStruct = new Struct(Struct.Int);
-			break;
-		case "char":
-			typeStruct = new Struct(Struct.Char);
-			break;
-		case "bool":
-			typeStruct = new Struct(Struct.Bool);
-			break;
-		default:
-			typeStruct = null; // Nek pukne Tab.dump() i dusmani
-		}
-
-		Obj varNode;
-
-		switch (symbol.getClass().getSimpleName()) {
-		case "VarArray":
-			symbolName = ((VarArray) symbol).getSymbolName();
-			typeStruct = new Struct(Struct.Array, typeStruct); // Override simple with array
-			varNode = Tab.insert(Obj.Var, symbolName, typeStruct);
-
-			LOG.info("Detektovan simbol " + symbolName + " koji predstavlja niz tipa " + type.getTypeName());
-			break;
-
-		case "VarSimple":
-			symbolName = ((VarSimple) symbol).getSymbolName();
-			varNode = Tab.insert(Obj.Var, symbolName, typeStruct);
-
-			LOG.info("Detektovan simbol " + symbolName + " tipa " + type.getTypeName());
-			break;
-		}
-
-		symbol.struct = typeStruct;
-	}
-
-	private static void processSymbols(Type type, VarSymbolList symbols) {
-		if (symbols instanceof VarSymbols) {
-			processSymbols(type, ((VarSymbols) symbols).getVarSymbolList());
-			processSingleSymbol(type, ((VarSymbols) symbols).getVarSymbol());
-		} else {
-			processSingleSymbol(type, ((VarSymbolSingle) symbols).getVarSymbol());
-		}
-	}
-
-	public void visit(VarDeclaration varDeclaration) {
-		Type type = varDeclaration.getType();
-		processSymbols(type, varDeclaration.getVarSymbolList());
-	}
-
-	public void visit(ConstDeclaration constant) {
-		Struct typeStruct = Tab.intType; // jedini tip podrzane konstante
-		if (!"int".equals(constant.getType().getTypeName())) {
-			reportError("Konstanta " + constant.getSymbolName() + " mora biti tipa int", constant);
-		}
-		constant.struct = typeStruct; // redundantno, ali for good measure
-		Obj varNode = Tab.insert(Obj.Con, constant.getSymbolName(), typeStruct);
-	}
-
 	public void visit(MethodTypeName methodTypeName) {
 		// TODO: samo je void podrzan, zato je Struct.NONE
 		currentMethod = Tab.insert(Obj.Meth, methodTypeName.getName(), new Struct(Struct.None));
@@ -133,85 +69,4 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		currentMethod = null;
 	}
 
-	private Obj checkSymbol(String symbolName, SyntaxNode node) {
-		Obj fromTable = Tab.find(symbolName);
-		if (fromTable != Tab.noObj) {
-			String type = "";
-			switch (fromTable.getType().getKind()) {
-			case 1: // int
-				type = "int";
-				break;
-			case 2: // char
-				type = "char";
-				break;
-			case 3: // array
-				type = "niz";
-				switch (fromTable.getType().getElemType().getKind()) {
-				case 1:
-					type += " int-ova";
-					break;
-				case 2:
-					type += " char-ova";
-					break;
-				case 4:
-					type += " objekata klase";
-					break;
-				}
-				break;
-			case 4: // class (not implemented)
-				break;
-			case 5:
-				type = "bool";
-			}
-
-			LOG.info("Koriscenje " + (fromTable.getLevel() > 0 ? "lokalne" : "globalne") + " "
-					+ (fromTable.getKind() == 0 ? "konstante" : "varijable") + " " + symbolName + " tipa " + type
-					+ " na liniji " + node.getLine());
-		} else {
-			reportError("Simbol " + symbolName + " je koriscen, ali nije prethodno deklarisan", node);
-		}
-
-		return fromTable;
-	}
-
-	public void visit(SimpleDesignator designator) {
-		designator.obj = checkSymbol(designator.getDesignatorName(), designator);
-	}
-
-	public void visit(ArrayElementDesignator designator) {
-		designator.obj = checkSymbol(designator.getArrayName(), designator);
-	}
-
-	public void visit(FactorDesignator factorDesignator) {
-		boolean inPrintStatement = "StatementPrintExpression"
-				.equals(factorDesignator.getParent().getParent().getParent().getClass().getSimpleName());
-		boolean charExpression;
-
-		String designatorName;
-		switch (factorDesignator.getDesignator().getClass().getSimpleName()) {
-		case "SimpleDesignator":
-			designatorName = ((SimpleDesignator) factorDesignator.getDesignator()).getDesignatorName();
-			if (Tab.find(designatorName).getType().getKind() != Tab.intType.getKind()) {
-				charExpression = Tab.find(designatorName).getType().getKind() == Tab.charType.getKind();
-				if (!(charExpression && inPrintStatement)) {
-					reportError(designatorName + " mora biti tipa int da bi figurisao u izrazu", factorDesignator);
-				}
-			}
-			break;
-		case "ArrayElementDesignator":
-			designatorName = ((ArrayElementDesignator) factorDesignator.getDesignator()).getArrayName();
-			if (Tab.find(designatorName).getType().getElemType().getKind() != Tab.intType.getKind()) {
-				charExpression = Tab.find(designatorName).getType().getElemType().getKind() == Tab.charType.getKind();
-
-				if (!(charExpression && inPrintStatement)) {
-					reportError("Element niza " + designatorName + " mora biti tipa int da bi figurisao u izrazu",
-							factorDesignator);
-				}
-			}
-			break;
-		default:
-			designatorName = null; // Nek puknu dusmani
-		}
-		factorDesignator.getDesignator().obj = Tab.find(designatorName);
-	}
 }
