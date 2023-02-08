@@ -197,15 +197,26 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	// Visit Statements
-	
+
 	public void visit(StatementIncrement statement) {
-		if (statement.getDesignator().obj.getKind() == Obj.Var) {
-			System.out.println("INKREMENTIRAM VARIJABLU");
+		if (statement.getDesignator().obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljeno inkrementiranje konstante", statement);
 		}
 	}
-	
+
+	public void visit(StatementDecrement statement) {
+		if (statement.getDesignator().obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljeno dekrementiranje konstante", statement);
+		}
+	}
+
+	// MESS
+
 	public void visit(StatementAssignExpression statement) { // TODO: IMPLEMENTIRATI
 		Designator designator = statement.getDesignator();
-		System.out.println("POREDIM " + designator.obj.getType().getKind() + " SA ?");
+		if (designator.obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljena dodela vrednosti konstanti", statement);
+		}
+		// TODO: videti da li je expression jedan jedini faktor
 	}
 }
