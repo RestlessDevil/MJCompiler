@@ -13,6 +13,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 	private static final Logger LOG = Logger.getLogger(SemanticAnalyzer.class);
 
+	// Structs
+	public static final Struct STRUCT_INT = Tab.find("int").getType();
+	public static final Struct STRUCT_CHAR = Tab.find("char").getType();
+	public static final Struct STRUCT_BOOL = new Struct(Struct.Bool);
+	public static final Struct STRUCT_NONE = new Struct(Struct.None);
+
 	private final Map<Struct, String> typeNameMap = new HashMap<>();
 
 	public int numberOfVars = 0;
@@ -59,10 +65,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		if (typeObj == Tab.noObj) { // Check if the type exists
 			switch (name) {
 			case "void":
-				typeObj = insertType(name, new Struct(Struct.None));
+				typeObj = insertType(name, STRUCT_NONE);
 				return typeObj.getType();
 			case "bool":
-				typeObj = insertType(name, new Struct(Struct.Bool));
+				typeObj = insertType(name, STRUCT_BOOL);
 				return typeObj.getType();
 
 			default:// Type not found
@@ -79,7 +85,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private String structToTypeName(Struct type) {
-		return typeNameMap.get(type);
+		if (type.getKind() == Struct.Array) {
+			return typeNameMap.get(type.getElemType()) + "[]";
+		} else {
+			return typeNameMap.get(type);
+		}
 	}
 
 	// Visitor methods
@@ -103,7 +113,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		try {
 			type.struct = typeNameToStruct(typeName);
 		} catch (Exception ex) {
-			type.struct = new Struct(Struct.None); // Just to avoid an unwanted exception
+			type.struct = STRUCT_NONE; // Just to avoid an unwanted exception
 			reportError("Tip " + typeName + " nije podrzan u realizaciji za nivo A.", methodTypeName);
 		}
 
@@ -133,7 +143,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			type.struct = typeNameToStruct(typeName);
 		} catch (Exception ex) {
 			reportError("Tip " + typeName + " nije podrzan u realizaciji za nivo A.", declaration);
-			type.struct = new Struct(Struct.None); // Just to avoid an unwanted exception
+			type.struct = STRUCT_NONE; // Just to avoid an unwanted exception
 		}
 		declaration.obj = Tab.insert(Obj.Con, constName, type.struct);
 
@@ -146,13 +156,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			vs.obj = Tab.insert(Obj.Var, vs.getSymbolName(), typeStruct);
 
 			reportInfo("Deklarisana je " + (vs.obj.getLevel() > 0 ? "lokalna" : "globalna") + " promenljiva \""
-					+ vs.getSymbolName() + "\" tipa \"" + structToTypeName(typeStruct) + "\"", symbol);
+					+ vs.getSymbolName() + "\" tipa " + structToTypeName(typeStruct), symbol);
 		} else { // VarArray
 			VarArray va = (VarArray) symbol;
 			va.obj = Tab.insert(Obj.Var, va.getSymbolName(), new Struct(Struct.Array, typeStruct)); // TODO: cache
 
 			reportInfo("Deklarisan je " + (va.obj.getLevel() > 0 ? "lokalni" : "globalni") + " niz \""
-					+ va.getSymbolName() + "\" promenljivih tipa \"" + structToTypeName(typeStruct) + "\"", symbol);
+					+ va.getSymbolName() + "\" promenljivih tipa " + structToTypeName(typeStruct), symbol);
 		}
 	}
 
@@ -173,7 +183,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			type.struct = typeNameToStruct(typeName);
 		} catch (Exception ex) {
 			reportError("Tip " + typeName + " nije podrzan u realizaciji za nivo A.", declaration);
-			type.struct = new Struct(Struct.None); // Just to avoid an unwanted exception
+			type.struct = STRUCT_NONE; // Just to avoid an unwanted exception
 		}
 
 		processVarSymbols(type.struct, declaration.getVarSymbolList());
@@ -182,18 +192,27 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	public void visit(SimpleDesignator designator) {
 		String name = designator.getDesignatorName();
 		designator.obj = Tab.find(name);
-		LOG.debug("Detektovano je koriscenje "
-				+ (designator.obj.getKind() == 1
-						? ((designator.obj.getLevel() > 0 ? "lokalne" : "globalne") + " promenljive")
-						: "konstante")
-				+ " \"" + name + "\" tipa \"" + structToTypeName(designator.obj.getType()) + "\"");
+		if (designator.obj != Tab.noObj) { // Symbol declared
+			LOG.debug(
+					"Detektovano je koriscenje "
+							+ (designator.obj.getKind() == 1
+									? ((designator.obj.getLevel() > 0 ? "lokalne" : "globalne") + " promenljive")
+									: "konstante")
+							+ " \"" + name + "\" tipa " + structToTypeName(designator.obj.getType()));
+		} else { // Symbol not declared (error)
+			reportError("Simbol \"" + designator.getDesignatorName() + "\" nije deklarisan ", designator);
+		}
 	}
 
 	public void visit(ArrayElementDesignator designator) {
 		String name = designator.getArrayName();
 		designator.obj = Tab.find(name);
-		LOG.debug("Detektovan je pristup elementu " + (designator.obj.getLevel() > 0 ? "lokalnog" : "globalnog")
-				+ " niza \"" + name + "\"");
+		if (designator.obj != Tab.noObj) {
+			LOG.debug("Detektovan je pristup elementu " + (designator.obj.getLevel() > 0 ? "lokalnog" : "globalnog")
+					+ " niza \"" + name + "\"");
+		} else {
+			reportError("Niz \"" + designator.getArrayName() + "\" nije deklarisan", designator);
+		}
 	}
 
 	// Visit Statements
@@ -210,13 +229,135 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 
-	// MESS
+	// ********** Expression validation **********
+
+	private Struct detectFactorStruct(Factor factor) {
+		if (factor instanceof FactorNumericConstant) { // FactorNumericConstant
+			factor.struct = STRUCT_INT;
+		} else if (factor instanceof FactorCharConstant) { // CharConstant
+			factor.struct = STRUCT_CHAR;
+		} else if (factor instanceof FactorDesignator) { // FactorDesignator
+			Designator designator = ((FactorDesignator) factor).getDesignator();
+			if (designator instanceof SimpleDesignator) { // Simple Designator
+				factor.struct = Tab.find(((SimpleDesignator) designator).getDesignatorName()).getType();
+			} else { // ArrayElementDesignator
+				factor.struct = Tab.find(((ArrayElementDesignator) designator).getArrayName()).getType().getElemType();
+			}
+		} else { // FactorInParenthesis
+			factor.struct = detectExpressionType(((FactorInParenthesis) factor).getExpression());
+		}
+
+		return factor.struct;
+	}
+
+	private Struct detectMulopStruct(MulOperations operationsMul) {
+		if (operationsMul instanceof OperationsMultiplicationEmpty) {
+			return STRUCT_NONE;
+		} else {
+			Struct mulOperationsStruct = detectMulopStruct(
+					((OperationsMultiplication) operationsMul).getMulOperations());
+			Factor factor = ((OperationsMultiplication) operationsMul).getFactor();
+			factor.struct = detectFactorStruct(factor);
+			if (!factor.struct.equals(mulOperationsStruct) && mulOperationsStruct != STRUCT_NONE) {
+				reportError("Nekompatibilni tipovi " + structToTypeName(factor.struct) + " i "
+						+ structToTypeName(mulOperationsStruct), operationsMul);
+			}
+
+			return factor.struct;
+		}
+	}
+
+	private Struct detectTermType(Term term) {
+		term.struct = detectFactorStruct(term.getFactor());
+		Struct mulopStruct = detectMulopStruct(term.getMulOperations());
+		if (!term.struct.equals(mulopStruct) && mulopStruct != STRUCT_NONE) {
+			reportError(
+					"Nekompatibilni tipovi " + structToTypeName(term.struct) + " i " + structToTypeName(mulopStruct),
+					term);
+		}
+
+		return term.struct;
+	}
+
+	private Struct detectAddopStruct(AddOperations addOperations) {
+		if (addOperations instanceof OperationsAddEmpty) { // OperationsAddEmtpy
+			return STRUCT_NONE;
+		} else {// OperationsAdd
+			Struct addOperationsStruct = detectAddopStruct(((OperationsAdd) addOperations).getAddOperations());
+			Term term = ((OperationsAdd) addOperations).getTerm();
+			term.struct = detectTermType(term);
+			if (!term.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
+				reportError("Nekompatibilni tipovi " + structToTypeName(term.struct) + " i "
+						+ structToTypeName(addOperationsStruct), addOperations);
+			}
+
+			return term.struct;
+		}
+	}
+
+	private Struct detectExpressionType(Expression expression) {
+		expression.struct = STRUCT_NONE;
+
+		if (expression instanceof ExpressionNegated) { // ExpressionNegated
+			expression.struct = STRUCT_INT; // Must be int
+
+			Struct termStruct = detectTermType(((ExpressionNegated) expression).getTerm());
+			if (!expression.struct.equals(termStruct)) {
+				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
+						+ structToTypeName(termStruct), expression);
+			}
+			Struct addOperationsStruct = detectAddopStruct(((ExpressionNegated) expression).getAddOperations());
+			if (!expression.struct.equals(addOperationsStruct)) {
+				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
+						+ structToTypeName(addOperationsStruct), expression);
+			}
+		} else if (expression instanceof ExpressionSimple) { // ExpressionSimple
+			expression.struct = detectTermType(((ExpressionSimple) expression).getTerm());
+			Struct addOperationsStruct = detectAddopStruct(((ExpressionSimple) expression).getAddOperations());
+			if (!expression.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
+				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
+						+ structToTypeName(addOperationsStruct), expression);
+			}
+		}
+
+		return expression.struct;
+	}
+
+	public void visit(ExpressionSimple expression) {
+		detectExpressionType(expression);
+	}
+
+	public void visit(ExpressionNegated expression) {
+		detectExpressionType(expression);
+	}
 
 	public void visit(StatementAssignExpression statement) { // TODO: IMPLEMENTIRATI
 		Designator designator = statement.getDesignator();
+
+		String designatorName;
+		Struct designatorType;
+
+		if (designator instanceof SimpleDesignator) {
+			designatorName = ((SimpleDesignator) designator).getDesignatorName();
+			designatorType = designator.obj.getType();
+		} else {
+			designatorName = ((ArrayElementDesignator) designator).getArrayName();
+			designatorType = designator.obj.getType().getElemType();
+		}
+
 		if (designator.obj.getKind() == Obj.Con) {
 			reportError("Nije dozvoljena dodela vrednosti konstanti", statement);
 		}
-		// TODO: videti da li je expression jedan jedini faktor
+
+		Struct expressionType = detectExpressionType(statement.getExpression());
+		if (!designatorType.equals(expressionType)) {
+			reportError("Designator \"" + designatorName + "\" je tipa " + structToTypeName(designatorType)
+					+ " a dodeljeni izraz je tipa " + structToTypeName(expressionType), statement);
+		}
+	}
+
+	public void visit(StatementPrint statement) {
+		reportInfo("Detektovana je print instrukcija tipa "
+				+ structToTypeName(detectExpressionType(statement.getExpression())), statement);
 	}
 }

@@ -47,11 +47,11 @@ terminal Integer NUMBER;
 terminal String IDENTIFIER, CHAR;
 
 nonterminal DeclarationList, VarSymbolList,
-			MethodList, FormPars, StatementList, Statement,
+			MethodList, FormPars, StatementList, Statement, MultiDesignator,
 			AddOperations, MulOperations, Addop, Mulop;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj Program, ProgramName, ConstSymbol, VarSymbol, Method, MethodTypeName, Designator;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, VarDecl, Term, Factor, Expression, CharConstant;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, VarDecl, Term, Factor, Expression;
 
 start with Program;
 
@@ -84,13 +84,14 @@ StatementList ::= (StatementListNotEmpty) StatementList Statement
 				|	(StatementListEmpty) /* or empty */;
 			
 Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
-			| (StatementAssignChar) Designator ASSIGN CHAR SEMICOLON
+			| (StatementMultiAssign) LSQUARE MultiDesignator RSQUARE ASSIGN Designator SEMICOLON
 			| (StatementIncrement) Designator INCREMENT SEMICOLON
 			| (StatementDecrement) Designator DECREMENT SEMICOLON
-			| (StatementPrintExpression) PRINT LPAREN Expression RPAREN SEMICOLON
-			| (StatementPrintChar) PRINT LPAREN CharConstant RPAREN SEMICOLON
+			| (StatementPrint) PRINT LPAREN Expression RPAREN SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
 			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
+			
+MultiDesignator ::= COMMA MultiDesignator | Designator MultiDesignator  | /* empty */;
 
 Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
 			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;
@@ -115,7 +116,6 @@ Mulop ::= (OperatorAsterisk) ASTERISK
 			| (OperatorPercent) PERCENT;
 
 Factor ::= (FactorNumericConstant) NUMBER:value
+			| (FactorCharConstant) CHAR:value
 			| (FactorDesignator) Designator:symbolName
 			| (FactorInParenthesis) LPAREN Expression RPAREN;
-
-CharConstant ::= (CharConstant) CHAR:value;
