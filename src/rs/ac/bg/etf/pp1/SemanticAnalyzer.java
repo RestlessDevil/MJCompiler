@@ -215,20 +215,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 
-	// Visit Statements
-
-	public void visit(StatementIncrement statement) {
-		if (statement.getDesignator().obj.getKind() == Obj.Con) {
-			reportError("Nije dozvoljeno inkrementiranje konstante", statement);
-		}
-	}
-
-	public void visit(StatementDecrement statement) {
-		if (statement.getDesignator().obj.getKind() == Obj.Con) {
-			reportError("Nije dozvoljeno dekrementiranje konstante", statement);
-		}
-	}
-
 	// ********** Expression validation **********
 
 	private Struct detectFactorStruct(Factor factor) {
@@ -331,7 +317,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		detectExpressionType(expression);
 	}
 
-	public void visit(StatementAssignExpression statement) { // TODO: IMPLEMENTIRATI
+	// ********** Statement validation **********
+
+	public void visit(StatementAssignExpression statement) {
 		Designator designator = statement.getDesignator();
 
 		String designatorName;
@@ -359,5 +347,60 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	public void visit(StatementPrint statement) {
 		reportInfo("Detektovana je print instrukcija tipa "
 				+ structToTypeName(detectExpressionType(statement.getExpression())), statement);
+	}
+
+	public void visit(StatementIncrement statement) {
+		if (statement.getDesignator().obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljeno inkrementiranje konstante", statement);
+		}
+
+		if (!statement.getDesignator().obj.getType().equals(STRUCT_INT)) {
+			reportError("Nije dozvoljeno inkrementiranje varijable koja nije tipa int", statement);
+		}
+	}
+
+	public void visit(StatementDecrement statement) {
+		if (statement.getDesignator().obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljeno dekrementiranje konstante", statement);
+		}
+
+		if (!statement.getDesignator().obj.getType().equals(STRUCT_INT)) {
+			reportError("Nije dozvoljeno dekrementiranje varijable koja nije tipa int", statement);
+		}
+	}
+
+	public void visit(StatementRead statement) {
+		if (statement.getDesignator().obj.getKind() == Obj.Con) {
+			reportError("Nije dozvoljeno citanje vrednosti u konstantu", statement);
+		}
+		Struct type = statement.getDesignator().obj.getType();
+		if (!type.equals(STRUCT_INT) && !type.equals(STRUCT_CHAR)) { // TODO: proveriti u runtime
+			reportError("Nije dozvoljeno citanje vrednosti u varijablu tipa " + structToTypeName(type), statement);
+		}
+	}
+
+	public void visit(StatementAllocateArray statement) {
+		Struct designatorType = statement.getDesignator().obj.getType();
+		try {
+			statement.getType().struct = typeNameToStruct(statement.getType().getTypeName());
+		} catch (Exception e) {
+			reportError(statement.getType().getTypeName() + " tip nije podrzan", statement);
+		}
+		Struct expressionType = detectExpressionType(statement.getExpression());
+
+		if (!expressionType.equals(STRUCT_INT)) {
+			reportError("Velicina niza mora da bude tipa int", statement);
+		}
+
+		if (designatorType.getKind() == Struct.Array) {
+			if (!designatorType.getElemType().equals(statement.getType().struct)) {
+				reportError("Alocira se niz tipa " + structToTypeName(statement.getType().struct) + ", ali niz \""
+						+ ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" je tipa "
+						+ structToTypeName(designatorType), statement);
+			}
+		} else { // Not an array
+			reportError("\"" + ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" nije niz",
+					statement);
+		}
 	}
 }

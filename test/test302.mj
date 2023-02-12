@@ -59,8 +59,9 @@ program test301
 		
 		probaPrinta = 'd';
 		print(probaPrinta);
-			
 		
+		nizch = new int[5];
+				
 		read(bodovi);
 		bodovi = -bodovi + (pet * a / 2 - jedan) * bodovi - (3 % 2 + 3 * 2 - 3); 
 		print(bodovi);
