@@ -393,14 +393,58 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 
 		if (designatorType.getKind() == Struct.Array) {
-			if (!designatorType.getElemType().equals(statement.getType().struct)) {
-				reportError("Alocira se niz tipa " + structToTypeName(statement.getType().struct) + ", ali niz \""
-						+ ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" je tipa "
-						+ structToTypeName(designatorType), statement);
+			if (statement.getDesignator() instanceof SimpleDesignator) { // Must be SimpleArray
+				if (!designatorType.getElemType().equals(statement.getType().struct)) {
+					reportError("Alocira se niz tipa " + structToTypeName(statement.getType().struct) + ", ali niz \""
+							+ ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" je tipa "
+							+ structToTypeName(designatorType), statement);
+				}
+			} else { // Matrix is not supported
+				reportError(
+						"MicroJava ne podrzava matrice (\""
+								+ ((ArrayElementDesignator) statement.getDesignator()).getArrayName() + "[][]\")",
+						statement);
 			}
 		} else { // Not an array
 			reportError("\"" + ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" nije niz",
 					statement);
+		}
+	}
+
+	private void checkMultiDesignator(MultiDesignator multiDesignator, Struct type, SyntaxNode node) {
+		if (multiDesignator instanceof MultiDesignatorWithDesignator) {
+			Designator designator = ((MultiDesignatorWithDesignator) multiDesignator).getDesignator();
+			if (designator instanceof SimpleDesignator) {
+				if (!type.equals(designator.obj.getType())) {
+					reportError("\"" + ((SimpleDesignator) designator).getDesignatorName() + "\" treba da bude tipa "
+							+ structToTypeName(type), node);
+				}
+			} else {
+				if (!type.equals(designator.obj.getType().getElemType())) {
+					reportError("\"" + ((ArrayElementDesignator) designator).getArrayName()
+							+ "\" treba da bude niz tipa " + structToTypeName(type), node);
+				}
+			}
+
+			checkMultiDesignator(((MultiDesignatorWithDesignator) multiDesignator).getMultiDesignator(), type, node);
+		} else if (multiDesignator instanceof MultiDesignatorComma) {
+			checkMultiDesignator(((MultiDesignatorComma) multiDesignator).getMultiDesignator(), type, node);
+		}
+	}
+
+	public void visit(StatementMultiAssign statement) {
+		Struct arrayType = statement.getDesignator().obj.getType();
+		if (arrayType.getKind() == Struct.Array) {
+			checkMultiDesignator(statement.getMultiDesignator(), arrayType.getElemType(), statement);
+		} else {
+			if (statement.getDesignator() instanceof SimpleDesignator) {
+				reportError(
+						"\"" + ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" mora biti niz",
+						statement);
+			} else {
+				reportError("\"" + ((ArrayElementDesignator) statement.getDesignator()).getArrayName()
+						+ "\" mora biti niz, a ne element niza", statement);
+			}
 		}
 	}
 }
