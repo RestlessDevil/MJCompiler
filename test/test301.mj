@@ -1,33 +1,13 @@
 // Test301
 
 program test301
-
-	const int nula = 0;
-	const int jedan = 1;
-	
-	int a, b;
 	
 {
 	void main()	
-		char abuzibaja;
-		int trtibiduba[];
+		int niz[];
 	{
-		a = 1 + 1;
-		a = a + 1;
+		niz = new int[5];
 		
-		abuzibaja = 'a';
-		
-		a = -a;
-		print(a, 3);
-		print('_');
-		a--;
-		
-		trtibiduba = new int[5];
-		trtibiduba[1] = 47;
-				
-		print(trtibiduba[1], 3);
-		
-		read(trtibiduba[2]);
-		print(trtibiduba[2]);
+		niz[3] = 47;
 	}
 }

@@ -44,7 +44,11 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(FactorDesignator factor) {
-		Code.load(factor.getDesignator().obj);
+		if (factor.getDesignator() instanceof SimpleDesignator) {
+			Code.load(factor.getDesignator().obj);
+		} else { // ArrayElementDesignator
+			Code.load(factor.getDesignator().obj);
+		}
 	}
 
 	public void visit(FactorCharConstant factor) {
@@ -78,12 +82,20 @@ public class CodeGenerator extends VisitorAdaptor {
 	// Statements
 
 	public void visit(StatementAssignExpression statement) {
-		Code.store(statement.getDesignator().obj);
+		if (statement.getDesignator() instanceof SimpleDesignator) {
+			Code.store(statement.getDesignator().obj);
+		} else { // ArrayElementDesignator
+		}
+	}
+
+	public void visit(StatementMultiAssign statement) {
+
 	}
 
 	public void visit(StatementIncrement statement) {
 		Code.load(statement.getDesignator().obj);
-		Code.put(Code.inc);
+		Code.loadConst(1);
+		Code.put(Code.add);
 		Code.store(statement.getDesignator().obj);
 	}
 
@@ -93,8 +105,6 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.put(Code.sub);
 		Code.store(statement.getDesignator().obj);
 	}
-
-	// TODO: rest of the statements
 
 	public void visit(StatementPrint statement) {
 		Code.loadConst(1);
@@ -117,7 +127,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(StatementRead statement) {
 		Obj designatorObj;
 		Struct designatorType;
-		
+
 		if (statement.getDesignator() instanceof SimpleDesignator) {
 			designatorObj = ((SimpleDesignator) statement.getDesignator()).obj;
 			designatorType = designatorObj.getType();
@@ -125,10 +135,10 @@ public class CodeGenerator extends VisitorAdaptor {
 			designatorObj = ((ArrayElementDesignator) statement.getDesignator()).obj;
 			designatorType = designatorObj.getType().getElemType();
 		}
-		
+
 		if (designatorType == SemanticAnalyzer.STRUCT_INT) {
 			Code.put(Code.read);
-		} else {
+		} else { // STRUCT_CHAR
 			Code.put(Code.bread);
 		}
 		Code.store(designatorObj);
@@ -141,5 +151,6 @@ public class CodeGenerator extends VisitorAdaptor {
 		} else {
 			Code.put(1);
 		}
+		Code.store(statement.getDesignator().obj);
 	}
 }

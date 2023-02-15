@@ -206,9 +206,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 	public void visit(ArrayElementDesignator designator) {
 		String name = designator.getArrayName();
-		designator.obj = Tab.find(name);
-		if (designator.obj != Tab.noObj) {
-			LOG.debug("Detektovan je pristup elementu " + (designator.obj.getLevel() > 0 ? "lokalnog" : "globalnog")
+		Obj arrayObj = Tab.find(name);
+		if (arrayObj != Tab.noObj) {
+			designator.obj = new Obj(Obj.Elem, name + "_element", arrayObj.getType().getElemType());
+			LOG.debug("Detektovan je pristup elementu " + (arrayObj.getLevel() > 0 ? "lokalnog" : "globalnog")
 					+ " niza \"" + name + "\"");
 		} else {
 			reportError("Niz \"" + designator.getArrayName() + "\" nije deklarisan", designator);
@@ -327,11 +328,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 		if (designator instanceof SimpleDesignator) {
 			designatorName = ((SimpleDesignator) designator).getDesignatorName();
-			designatorType = designator.obj.getType();
 		} else {
 			designatorName = ((ArrayElementDesignator) designator).getArrayName();
-			designatorType = designator.obj.getType().getElemType();
 		}
+		designatorType = designator.obj.getType();
 
 		if (designator.obj.getKind() == Obj.Con) {
 			reportError("Nije dozvoljena dodela vrednosti konstanti", statement);

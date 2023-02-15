@@ -69,7 +69,19 @@
 		</java>
 	</target>
 
-	<target name="runObj" depends="disasm">
+	<target name="debug" depends="disasm">
+		<java classname="rs.etf.pp1.mj.runtime.Run" fork="true">
+			<jvmarg value="-Djava.security.manager=allow" />
+			<arg value="-debug" />
+			<arg value="test/test301.obj" />
+			<classpath>
+				<pathelement location="lib/mj-runtime-1.1.jar" />
+			</classpath>
+		</java>
+	</target>
+	
+
+	<target name="runObj" depends="debug">
 		<java classname="rs.etf.pp1.mj.runtime.Run" fork="true">
 			<jvmarg value="-Djava.security.manager=allow" />
 			<arg value="test/test301.obj" />
