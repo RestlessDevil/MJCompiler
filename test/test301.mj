@@ -26,5 +26,8 @@ program test301
 		trtibiduba[1] = 47;
 				
 		print(trtibiduba[1], 3);
+		
+		read(trtibiduba[2]);
+		print(trtibiduba[2]);
 	}
 }

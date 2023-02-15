@@ -374,7 +374,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			reportError("Nije dozvoljeno citanje vrednosti u konstantu", statement);
 		}
 		Struct type = statement.getDesignator().obj.getType();
-		if (!type.equals(STRUCT_INT) && !type.equals(STRUCT_CHAR)) { // TODO: proveriti u runtime
+		if (type.getKind() == 3) { // Array
+			type = type.getElemType();
+		}
+
+		if (!type.equals(STRUCT_INT) && !type.equals(STRUCT_CHAR)) {
 			reportError("Nije dozvoljeno citanje vrednosti u varijablu tipa " + structToTypeName(type), statement);
 		}
 	}

@@ -4,6 +4,8 @@ import rs.ac.bg.etf.pp1.CounterVisitor.VarCounter;
 import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.mj.runtime.Code;
 import rs.etf.pp1.symboltable.*;
+import rs.etf.pp1.symboltable.concepts.Obj;
+import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class CodeGenerator extends VisitorAdaptor {
 	private int mainPC = 0;
@@ -110,6 +112,26 @@ public class CodeGenerator extends VisitorAdaptor {
 		} else { // STRUCT_CHAR
 			Code.put(Code.bprint);
 		}
+	}
+
+	public void visit(StatementRead statement) {
+		Obj designatorObj;
+		Struct designatorType;
+		
+		if (statement.getDesignator() instanceof SimpleDesignator) {
+			designatorObj = ((SimpleDesignator) statement.getDesignator()).obj;
+			designatorType = designatorObj.getType();
+		} else { // ArrayElementDesignator
+			designatorObj = ((ArrayElementDesignator) statement.getDesignator()).obj;
+			designatorType = designatorObj.getType().getElemType();
+		}
+		
+		if (designatorType == SemanticAnalyzer.STRUCT_INT) {
+			Code.put(Code.read);
+		} else {
+			Code.put(Code.bread);
+		}
+		Code.store(designatorObj);
 	}
 
 	public void visit(StatementAllocateArray statement) {
