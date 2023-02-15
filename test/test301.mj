@@ -10,6 +10,7 @@ program test301
 {
 	void main()	
 		char abuzibaja;
+		int trtibiduba[];
 	{
 		a = 1 + 1;
 		a = a + 1;
@@ -17,8 +18,13 @@ program test301
 		abuzibaja = 'a';
 		
 		a = -a;
-		print(a);
+		print(a, 3);
+		print('_');
+		a--;
 		
-		print(abuzibaja, 2);
+		trtibiduba = new int[5];
+		trtibiduba[1] = 47;
+				
+		print(trtibiduba[1], 3);
 	}
 }

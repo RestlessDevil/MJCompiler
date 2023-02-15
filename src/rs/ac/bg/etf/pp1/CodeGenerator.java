@@ -36,15 +36,6 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.put(Code.return_);
 	}
 
-	public void visit(StatementAllocateArray saa) {
-		Code.put(Code.newarray);
-		if (saa.getType().struct == Tab.charType) {
-			Code.put(0);
-		} else {
-			Code.put(1);
-		}
-	}
-
 	// Factors
 	public void visit(FactorNumericConstant factor) {
 		Code.loadConst(factor.getValue());
@@ -88,6 +79,19 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.store(statement.getDesignator().obj);
 	}
 
+	public void visit(StatementIncrement statement) {
+		Code.load(statement.getDesignator().obj);
+		Code.put(Code.inc);
+		Code.store(statement.getDesignator().obj);
+	}
+
+	public void visit(StatementDecrement statement) {
+		Code.load(statement.getDesignator().obj);
+		Code.loadConst(1);
+		Code.put(Code.sub);
+		Code.store(statement.getDesignator().obj);
+	}
+
 	// TODO: rest of the statements
 
 	public void visit(StatementPrint statement) {
@@ -105,6 +109,15 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.put(Code.print);
 		} else { // STRUCT_CHAR
 			Code.put(Code.bprint);
+		}
+	}
+
+	public void visit(StatementAllocateArray statement) {
+		Code.put(Code.newarray);
+		if (statement.getType().struct == SemanticAnalyzer.STRUCT_CHAR) {
+			Code.put(0);
+		} else {
+			Code.put(1);
 		}
 	}
 }
