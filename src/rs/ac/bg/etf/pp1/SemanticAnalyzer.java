@@ -293,7 +293,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 						+ structToTypeName(termStruct), expression);
 			}
 			Struct addOperationsStruct = detectAddopStruct(((ExpressionNegated) expression).getAddOperations());
-			if (!expression.struct.equals(addOperationsStruct)) {
+			if (!expression.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
 				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
 						+ structToTypeName(addOperationsStruct), expression);
 			}

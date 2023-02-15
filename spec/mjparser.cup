@@ -88,6 +88,7 @@ Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
 			| (StatementIncrement) Designator INCREMENT SEMICOLON
 			| (StatementDecrement) Designator DECREMENT SEMICOLON
 			| (StatementPrint) PRINT LPAREN Expression RPAREN SEMICOLON
+			| (StatementPrintWidth) PRINT LPAREN Expression COMMA NUMBER:width RPAREN SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
 			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
 			

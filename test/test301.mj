@@ -5,22 +5,20 @@ program test301
 	const int nula = 0;
 	const int jedan = 1;
 	
-	int niz[], niz2[], a, b;
-	char nizch[];
-	
-	char zika;
-	char jova;
+	int a, b;
 	
 {
 	void main()	
-		int bodovi, abuzibaja;
-		bool bt;
+		char abuzibaja;
 	{
-
-		//nizch = new char[4];
-		//jova = 'C';
-		print(jedan);
+		a = 1 + 1;
+		a = a + 1;
+		
+		abuzibaja = 'a';
+		
+		a = -a;
+		print(a);
+		
+		print(abuzibaja, 2);
 	}
 }
-
-

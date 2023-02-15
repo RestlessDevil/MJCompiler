@@ -71,8 +71,7 @@ public class MJCompiler {
 			LOG.info("Ukupno globalnih promenljivih: " + semanticAnalyzer.getNumberOfVars());
 			LOG.info("===================================");
 			CodeGenerator codeGenerator = new CodeGenerator();
-			// TODO: uncomment
-			//prog.traverseBottomUp(codeGenerator);
+			prog.traverseBottomUp(codeGenerator);
 
 			Code.dataSize = semanticAnalyzer.getNumberOfVars();
 			Code.mainPc = codeGenerator.getMainPc();
