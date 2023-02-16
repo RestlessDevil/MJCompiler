@@ -1,9 +1,8 @@
 package rs.ac.bg.etf.pp1;
 
-import rs.ac.bg.etf.pp1.CounterVisitor.VarCounter;
 import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.mj.runtime.Code;
-import rs.etf.pp1.symboltable.*;
+import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
@@ -23,13 +22,10 @@ public class CodeGenerator extends VisitorAdaptor {
 		// Collect arguments and local variables
 		SyntaxNode methodNode = methodTypeName.getParent();
 
-		VarCounter varCnt = new VarCounter();
-		methodNode.traverseTopDown(varCnt);
-
 		// Generate the entry
 		Code.put(Code.enter);
 		Code.put(0); // void main() only
-		Code.put(0 + varCnt.getCount());
+		Code.put(0 + SemanticAnalyzer.numberOfLocalVars.get(((Method) methodTypeName.getParent()).obj));
 
 	}
 
@@ -48,6 +44,9 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.load(factor.getDesignator().obj);
 		} else { // ArrayElementDesignator
 			Code.load(factor.getDesignator().obj);
+			Code.put(Code.dup_x1);
+			Code.put(Code.pop);
+			Code.put(Code.aload);
 		}
 	}
 
@@ -85,6 +84,11 @@ public class CodeGenerator extends VisitorAdaptor {
 		if (statement.getDesignator() instanceof SimpleDesignator) {
 			Code.store(statement.getDesignator().obj);
 		} else { // ArrayElementDesignator
+			// Code generator is not compatible with the Runtime, hence this
+			Code.load(statement.getDesignator().obj);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.astore);
 		}
 	}
 
@@ -93,17 +97,46 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementIncrement statement) {
+		Code.put(Code.dup); // Need that index on the stack to remain for astore
 		Code.load(statement.getDesignator().obj);
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+			Code.put(Code.dup_x1);
+			Code.put(Code.pop);
+			Code.put(Code.aload);
+		}
+
 		Code.loadConst(1);
 		Code.put(Code.add);
-		Code.store(statement.getDesignator().obj);
+		if (statement.getDesignator() instanceof SimpleDesignator) {
+			Code.store(statement.getDesignator().obj);
+		} else {
+			Code.load(statement.getDesignator().obj);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.astore);
+		}
 	}
 
 	public void visit(StatementDecrement statement) {
+		Code.put(Code.dup); // Need that index on the stack to remain for astore
 		Code.load(statement.getDesignator().obj);
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+			Code.put(Code.dup_x1);
+			Code.put(Code.pop);
+			Code.put(Code.aload);
+		}
+
 		Code.loadConst(1);
 		Code.put(Code.sub);
-		Code.store(statement.getDesignator().obj);
+
+		if (statement.getDesignator() instanceof SimpleDesignator) {
+			Code.store(statement.getDesignator().obj);
+		} else {
+			Code.load(statement.getDesignator().obj);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.astore);
+		}
 	}
 
 	public void visit(StatementPrint statement) {
@@ -136,12 +169,20 @@ public class CodeGenerator extends VisitorAdaptor {
 			designatorType = designatorObj.getType().getElemType();
 		}
 
-		if (designatorType == SemanticAnalyzer.STRUCT_INT) {
+		if (designatorType == SemanticAnalyzer.STRUCT_INT) { // STRUCT_INT
 			Code.put(Code.read);
 		} else { // STRUCT_CHAR
 			Code.put(Code.bread);
 		}
-		Code.store(designatorObj);
+
+		if (statement.getDesignator() instanceof SimpleDesignator) {
+			Code.store(designatorObj);
+		} else {
+			Code.load(statement.getDesignator().obj);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.astore);
+		}
 	}
 
 	public void visit(StatementAllocateArray statement) {

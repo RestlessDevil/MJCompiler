@@ -68,12 +68,12 @@ public class MJCompiler {
 			}
 
 			LOG.info("Program " + prog.getProgramName().getName() + " je semanticki ispravan");
-			LOG.info("Ukupno globalnih promenljivih: " + semanticAnalyzer.getNumberOfVars());
+			LOG.info("Ukupno globalnih promenljivih: " + semanticAnalyzer.getNumberOfGlobalVars());
 			LOG.info("===================================");
 			CodeGenerator codeGenerator = new CodeGenerator();
 			prog.traverseBottomUp(codeGenerator);
 
-			Code.dataSize = semanticAnalyzer.getNumberOfVars();
+			Code.dataSize = semanticAnalyzer.getNumberOfGlobalVars();
 			Code.mainPc = codeGenerator.getMainPc();
 
 			if (objFile.exists()) {

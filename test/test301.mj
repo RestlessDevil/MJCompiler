@@ -4,10 +4,14 @@ program test301
 	
 {
 	void main()	
-		int niz[];
+		int niz[], i;
 	{
 		niz = new int[5];
 		
-		niz[3] = 47;
+		i = 1;
+		niz[i] = 7;
+		niz[i]++;
+		
+		print(niz[i], 5);
 	}
 }

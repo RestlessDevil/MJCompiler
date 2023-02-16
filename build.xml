@@ -7,7 +7,6 @@
 				<exclude name="MJCompiler.java" />
 				<exclude name="SemanticAnalyzer.java" />
 				<exclude name="CodeGenerator.java" />
-				<exclude name="CounterVisitor.java" />
 				<exclude name="util/Log4JUtils.java" />
 				<exclude name="Yylex.java" />
 			</fileset>
