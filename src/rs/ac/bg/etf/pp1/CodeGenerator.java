@@ -97,8 +97,12 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementIncrement statement) {
-		Code.put(Code.dup); // Need that index on the stack to remain for astore
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+			Code.put(Code.dup); // Need that index on the stack to remain for astore
+		}
+
 		Code.load(statement.getDesignator().obj);
+
 		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
@@ -118,8 +122,12 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementDecrement statement) {
-		Code.put(Code.dup); // Need that index on the stack to remain for astore
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+			Code.put(Code.dup); // Need that index on the stack to remain for astore
+		}
+
 		Code.load(statement.getDesignator().obj);
+
 		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
