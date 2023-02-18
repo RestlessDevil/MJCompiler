@@ -147,14 +147,27 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 		try {
 			type.struct = typeNameToStruct(typeName);
-		} catch (Exception ex) {
-			reportError("Tip " + typeName + " nije podrzan u realizaciji za nivo A.", declaration);
-			type.struct = STRUCT_NONE; // Just to avoid an unwanted exception
-		}
-		declaration.obj = Tab.insert(Obj.Con, constName, type.struct);
-		declaration.obj.setAdr(constAddressCounter++);
 
-		LOG.debug("Deklarisana je konstanta \"" + constName + "\" tipa " + typeName);
+			declaration.obj = Tab.insert(Obj.Con, constName, type.struct);
+
+			switch (type.struct.getKind()) {
+			case Struct.Int:
+				declaration.obj.setAdr(declaration.getValue());
+				break;
+			case Struct.Char:
+				break;
+			case Struct.Bool:
+				break;
+			default:
+				reportError("Tip " + typeName + " ne moze da bude konstanta. Samo int, bool ili char.", declaration);
+			}
+
+			LOG.debug("Deklarisana je konstanta \"" + constName + "\" tipa " + typeName);
+		} catch (Exception ex) {
+			reportError("Tip " + typeName + " nije deklarisan u tabeli simbola.", declaration);
+			type.struct = STRUCT_NONE; // Just to avoid an unwanted exception
+			declaration.obj = new Obj(Obj.Con, constName, type.struct);
+		}
 	}
 
 	private void processSingleVarSymbol(Struct typeStruct, VarSymbol symbol) {
@@ -438,14 +451,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private void checkMultiDesignator(MultiDesignator multiDesignator, Struct type, SyntaxNode node) {
-		if (!(multiDesignator instanceof MultiDesignatorSkip)) {
-			Designator designator;
+		if (!(multiDesignator instanceof MultiDesignatorSkip)) { // Has a designator
+			Designator designator; // Designator from the left side
 			if (multiDesignator instanceof MultiDesignatorWithDesignator) {
 				designator = ((MultiDesignatorWithDesignator) multiDesignator).getDesignator();
 			} else { // MultiDesignatorLast
 				designator = ((MultiDesignatorLast) multiDesignator).getDesignator();
 			}
 
+			// Must match the right side array element type
 			if (designator instanceof SimpleDesignator) {
 				if (!type.equals(designator.obj.getType())) {
 					reportError("\"" + ((SimpleDesignator) designator).getDesignatorName() + "\" treba da bude tipa "
@@ -462,7 +476,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 				checkMultiDesignator(((MultiDesignatorWithDesignator) multiDesignator).getMultiDesignator(), type,
 						node);
 			}
-		} else {
+		} else { // Skip
 			checkMultiDesignator(((MultiDesignatorSkip) multiDesignator).getMultiDesignator(), type, node);
 		}
 	}

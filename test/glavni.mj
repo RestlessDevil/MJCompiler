@@ -35,12 +35,13 @@ program test301
 		[a,b] = niz;
 		print(a);	// niz[0] -> 1
 		print(b);	// niz[1] -> 2
-		
-		
-		[,a,] = niz;
+				
+		[,a] = niz;
 		print(a);	// niz[1] -> 2
 
 		niz2 = new int[2];
+		// DOVDE DOBRO
+
 		[niz2[0],,niz2[niz[nula]]] = niz;
 
 		print(niz2[0]);	// niz[0] -> 1

@@ -39,7 +39,14 @@ public class CodeGenerator extends VisitorAdaptor {
 
 	public void visit(FactorDesignator factor) {
 		if (factor.getDesignator() instanceof SimpleDesignator) {
-			Code.load(factor.getDesignator().obj);
+			switch (factor.getDesignator().obj.getKind()) {
+			case Obj.Var:
+				Code.load(factor.getDesignator().obj);
+				break;
+			case Obj.Con:
+				Code.loadConst(factor.getDesignator().obj.getAdr());
+				break;
+			}
 		} else { // ArrayElementDesignator
 			Code.load(factor.getDesignator().obj);
 			Code.put(Code.dup_x1);
@@ -94,23 +101,32 @@ public class CodeGenerator extends VisitorAdaptor {
 		if (md instanceof MultiDesignatorSkip) {
 			processMultiDesignator(((MultiDesignatorSkip) md).getMultiDesignator(), rightArray, index + 1);
 		} else {
+			if (md instanceof MultiDesignatorWithDesignator) {
+				processMultiDesignator(((MultiDesignatorWithDesignator) md).getMultiDesignator(), rightArray,
+						index + 1);
+			}
+
 			Designator singleDesignator;
 			if (md instanceof MultiDesignatorWithDesignator) {
 				singleDesignator = ((MultiDesignatorWithDesignator) md).getDesignator();
 			} else { // MultiDesignatorLast
 				singleDesignator = ((MultiDesignatorLast) md).getDesignator();
 			}
-			if (singleDesignator instanceof SimpleDesignator) {
-				System.out.println("Single designator " + ((SimpleDesignator) singleDesignator).getDesignatorName()
-						+ " right index:" + index);
-			} else { // ArrayElementDesignator
-				System.out.println("Single designator " + ((ArrayElementDesignator) singleDesignator).getArrayName()
-						+ " right index:" + index);
-			}
 
-			if (md instanceof MultiDesignatorWithDesignator) {
-				processMultiDesignator(((MultiDesignatorWithDesignator) md).getMultiDesignator(), rightArray,
-						index + 1);
+			// Load the element from the right side array
+			Code.loadConst(index);
+			Code.load(rightArray.obj);
+			Code.put(Code.dup_x1);
+			Code.put(Code.pop);
+			Code.put(Code.aload);
+
+			if (singleDesignator instanceof SimpleDesignator) {
+				Code.store(singleDesignator.obj);
+			} else { // ArrayElementDesignator
+				Code.load(singleDesignator.obj);
+				Code.put(Code.dup_x2);
+				Code.put(Code.pop);
+				Code.put(Code.astore);
 			}
 		}
 	}
