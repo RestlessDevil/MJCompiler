@@ -94,7 +94,8 @@ Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
 			
 MultiDesignator ::= (MultiDesignatorWithDesignator) Designator COMMA MultiDesignator
 			| (MultiDesignatorSkip) COMMA MultiDesignator
-			| (MultiDesignatorLast) Designator;
+			| (MultiDesignatorLast) Designator
+			| (MultiDesignatorLastComma) Designator COMMA;
 
 Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
 			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;

@@ -455,8 +455,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			Designator designator; // Designator from the left side
 			if (multiDesignator instanceof MultiDesignatorWithDesignator) {
 				designator = ((MultiDesignatorWithDesignator) multiDesignator).getDesignator();
-			} else { // MultiDesignatorLast
+			} else if (multiDesignator instanceof MultiDesignatorLast) {
 				designator = ((MultiDesignatorLast) multiDesignator).getDesignator();
+			} else { // MultiDesignatorLastComma
+				designator = ((MultiDesignatorLastComma) multiDesignator).getDesignator();
 			}
 
 			// Must match the right side array element type

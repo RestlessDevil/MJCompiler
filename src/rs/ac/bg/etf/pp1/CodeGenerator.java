@@ -109,8 +109,10 @@ public class CodeGenerator extends VisitorAdaptor {
 			Designator singleDesignator;
 			if (md instanceof MultiDesignatorWithDesignator) {
 				singleDesignator = ((MultiDesignatorWithDesignator) md).getDesignator();
-			} else { // MultiDesignatorLast
+			} else if (md instanceof MultiDesignatorLast) {
 				singleDesignator = ((MultiDesignatorLast) md).getDesignator();
+			} else {// MultiDesignatorLastComma
+				singleDesignator = ((MultiDesignatorLastComma) md).getDesignator();
 			}
 
 			// Load the element from the right side array
