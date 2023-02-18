@@ -63,7 +63,8 @@ program test301
 		
 		//nizch[0] = new char[5]; // matrix fail test
 				
-		read(bodovi);
+		//read(bodovi);
+		bodovi = 20;
 		bodovi = -bodovi + (pet * a / 2 - jedan) * bodovi - (3 % 2 + 3 * 2 - 3); 
 		print(bodovi);
 			

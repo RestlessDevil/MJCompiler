@@ -78,7 +78,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		}
 	}
 
-	public void visit(ExpressionNegated expression) {
+	public void visit(TermNegated term) {
 		Code.loadConst(-1);
 		Code.put(Code.mul);
 	}

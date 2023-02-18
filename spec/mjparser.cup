@@ -101,8 +101,7 @@ Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
 			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;
 
 
-Expression ::= (ExpressionNegated) MINUS Term AddOperations
-			| (ExpressionSimple) Term AddOperations;
+Expression ::= (Expression) Term AddOperations;
 
 AddOperations ::= (OperationsAdd) AddOperations Addop:operator Term
 			| (OperationsAddEmpty)/* or empty */;
@@ -110,7 +109,8 @@ AddOperations ::= (OperationsAdd) AddOperations Addop:operator Term
 Addop ::= (OperatorPlus) PLUS
 			| (OperatorMinus) MINUS;
 
-Term ::= (Term) Factor MulOperations;
+Term ::= (TermSimple) Factor MulOperations
+			| (TermNegated) MINUS Factor MulOperations;
 
 MulOperations ::= (OperationsMultiplication) MulOperations Mulop:operator Factor
 			| (OperationsMultiplicationEmpty) /* or empty */;

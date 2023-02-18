@@ -284,12 +284,25 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private Struct detectTermType(Term term) {
-		term.struct = detectFactorStruct(term.getFactor());
-		Struct mulopStruct = detectMulopStruct(term.getMulOperations());
+		Struct mulopStruct;
+		if (term instanceof TermNegated) {
+			term.struct = detectFactorStruct(((TermNegated) term).getFactor());
+			mulopStruct = detectMulopStruct(((TermNegated) term).getMulOperations());
+		} else {// TermSimple
+			term.struct = detectFactorStruct(((TermSimple) term).getFactor());
+			mulopStruct = detectMulopStruct(((TermSimple) term).getMulOperations());
+		}
 		if (!term.struct.equals(mulopStruct) && mulopStruct != STRUCT_NONE) {
 			reportError(
 					"Nekompatibilni tipovi " + structToTypeName(term.struct) + " i " + structToTypeName(mulopStruct),
 					term);
+		}
+
+		if (term instanceof TermNegated) {
+			if ((term.struct != STRUCT_INT && term.struct != STRUCT_NONE)
+					|| (mulopStruct != STRUCT_INT && mulopStruct != STRUCT_NONE)) {
+				reportError("'-' sme da stoji samo ispred izraza tipa int", term);
+			}
 		}
 
 		return term.struct;
@@ -312,39 +325,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private Struct detectExpressionType(Expression expression) {
-		expression.struct = STRUCT_NONE;
+		expression.struct = detectTermType(expression.getTerm());
 
-		if (expression instanceof ExpressionNegated) { // ExpressionNegated
-			expression.struct = STRUCT_INT; // Must be int
-
-			Struct termStruct = detectTermType(((ExpressionNegated) expression).getTerm());
-			if (!expression.struct.equals(termStruct)) {
-				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
-						+ structToTypeName(termStruct), expression);
-			}
-			Struct addOperationsStruct = detectAddopStruct(((ExpressionNegated) expression).getAddOperations());
-			if (!expression.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
-				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
-						+ structToTypeName(addOperationsStruct), expression);
-			}
-		} else if (expression instanceof ExpressionSimple) { // ExpressionSimple
-			expression.struct = detectTermType(((ExpressionSimple) expression).getTerm());
-			Struct addOperationsStruct = detectAddopStruct(((ExpressionSimple) expression).getAddOperations());
-			if (!expression.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
-				reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
-						+ structToTypeName(addOperationsStruct), expression);
-			}
+		Struct addOperationsStruct = detectAddopStruct(expression.getAddOperations());
+		if (!expression.struct.equals(addOperationsStruct) && addOperationsStruct != STRUCT_NONE) {
+			reportError("Nekompatibilni tipovi " + structToTypeName(expression.struct) + " i "
+					+ structToTypeName(addOperationsStruct), expression);
 		}
 
 		return expression.struct;
-	}
-
-	public void visit(ExpressionSimple expression) {
-		detectExpressionType(expression);
-	}
-
-	public void visit(ExpressionNegated expression) {
-		detectExpressionType(expression);
 	}
 
 	// ********** Statement validation **********
