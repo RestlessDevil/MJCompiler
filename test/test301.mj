@@ -4,14 +4,17 @@ program test301
 	
 {
 	void main()	
-		int niz[], i;
+		const int nula = 0;
+		int niz[], niz2[];
+		int a, b;
 	{
 		niz = new int[5];
+		niz2 = new int[4];
+		niz[0] = 10;
+		niz[1] = 11;
+		niz[2] = 12;
+		niz[3] = 13;
 		
-		i = 1;
-		niz[i] = 7;
-		niz[i]++;
-		
-		print(niz[i], 5);
+		[a, b] = niz;
 	}
 }

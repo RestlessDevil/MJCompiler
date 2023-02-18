@@ -92,9 +92,9 @@ Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
 			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
 			
-MultiDesignator ::= (MultiDesignatorComma) COMMA MultiDesignator
-			|(MultiDesignatorWithDesignator) Designator MultiDesignator
-			| (MultiDesignatorEmpty) /* empty */;
+MultiDesignator ::= (MultiDesignatorWithDesignator) Designator COMMA MultiDesignator
+			| (MultiDesignatorSkip) COMMA MultiDesignator
+			| (MultiDesignatorLast) Designator;
 
 Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
 			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;

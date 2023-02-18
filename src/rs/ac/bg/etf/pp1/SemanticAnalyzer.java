@@ -438,8 +438,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private void checkMultiDesignator(MultiDesignator multiDesignator, Struct type, SyntaxNode node) {
-		if (multiDesignator instanceof MultiDesignatorWithDesignator) {
-			Designator designator = ((MultiDesignatorWithDesignator) multiDesignator).getDesignator();
+		if (!(multiDesignator instanceof MultiDesignatorSkip)) {
+			Designator designator;
+			if (multiDesignator instanceof MultiDesignatorWithDesignator) {
+				designator = ((MultiDesignatorWithDesignator) multiDesignator).getDesignator();
+			} else { // MultiDesignatorLast
+				designator = ((MultiDesignatorLast) multiDesignator).getDesignator();
+			}
+
 			if (designator instanceof SimpleDesignator) {
 				if (!type.equals(designator.obj.getType())) {
 					reportError("\"" + ((SimpleDesignator) designator).getDesignatorName() + "\" treba da bude tipa "
@@ -452,9 +458,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 				}
 			}
 
-			checkMultiDesignator(((MultiDesignatorWithDesignator) multiDesignator).getMultiDesignator(), type, node);
-		} else if (multiDesignator instanceof MultiDesignatorComma) {
-			checkMultiDesignator(((MultiDesignatorComma) multiDesignator).getMultiDesignator(), type, node);
+			if (multiDesignator instanceof MultiDesignatorWithDesignator) {
+				checkMultiDesignator(((MultiDesignatorWithDesignator) multiDesignator).getMultiDesignator(), type,
+						node);
+			}
+		} else {
+			checkMultiDesignator(((MultiDesignatorSkip) multiDesignator).getMultiDesignator(), type, node);
 		}
 	}
 

@@ -2,7 +2,6 @@ package rs.ac.bg.etf.pp1;
 
 import rs.ac.bg.etf.pp1.ast.*;
 import rs.etf.pp1.mj.runtime.Code;
-import rs.etf.pp1.symboltable.Tab;
 import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
@@ -19,14 +18,13 @@ public class CodeGenerator extends VisitorAdaptor {
 			mainPC = Code.pc;
 		}
 		methodTypeName.obj.setAdr(Code.pc);
-		// Collect arguments and local variables
-		SyntaxNode methodNode = methodTypeName.getParent();
+
+		Method methodNode = (Method) methodTypeName.getParent();
 
 		// Generate the entry
 		Code.put(Code.enter);
 		Code.put(0); // void main() only
-		Code.put(0 + SemanticAnalyzer.numberOfLocalVars.get(((Method) methodTypeName.getParent()).obj));
-
+		Code.put(0 + SemanticAnalyzer.numberOfLocalVars.get(methodNode.obj));
 	}
 
 	public void visit(Method method) {
@@ -92,8 +90,33 @@ public class CodeGenerator extends VisitorAdaptor {
 		}
 	}
 
-	public void visit(StatementMultiAssign statement) {
+	private void processMultiDesignator(MultiDesignator md, Designator rightArray, int index) {
+		if (md instanceof MultiDesignatorSkip) {
+			processMultiDesignator(((MultiDesignatorSkip) md).getMultiDesignator(), rightArray, index + 1);
+		} else {
+			Designator singleDesignator;
+			if (md instanceof MultiDesignatorWithDesignator) {
+				singleDesignator = ((MultiDesignatorWithDesignator) md).getDesignator();
+			} else { // MultiDesignatorLast
+				singleDesignator = ((MultiDesignatorLast) md).getDesignator();
+			}
+			if (singleDesignator instanceof SimpleDesignator) {
+				System.out.println("Single designator " + ((SimpleDesignator) singleDesignator).getDesignatorName()
+						+ " right index:" + index);
+			} else { // ArrayElementDesignator
+				System.out.println("Single designator " + ((ArrayElementDesignator) singleDesignator).getArrayName()
+						+ " right index:" + index);
+			}
 
+			if (md instanceof MultiDesignatorWithDesignator) {
+				processMultiDesignator(((MultiDesignatorWithDesignator) md).getMultiDesignator(), rightArray,
+						index + 1);
+			}
+		}
+	}
+
+	public void visit(StatementMultiAssign statement) {
+		processMultiDesignator(statement.getMultiDesignator(), statement.getDesignator(), 0);
 	}
 
 	public void visit(StatementIncrement statement) {
