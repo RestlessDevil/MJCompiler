@@ -53,8 +53,15 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.put(Code.pop);
 			Code.put(Code.aload);
 		} else {// MatrixElementDesignator
-			// TODO:
-			throw new RuntimeException("Tek treba da se implementira");
+			Code.load(factor.getDesignator().obj);
+			Code.put(Code.dup_x2);
+			Code.loadConst(1);
+			Code.put(Code.aload);
+			Code.put(Code.mul);
+			Code.put(Code.add);
+			Code.loadConst(2);
+			Code.put(Code.add);
+			Code.put(Code.aload);
 		}
 	}
 
