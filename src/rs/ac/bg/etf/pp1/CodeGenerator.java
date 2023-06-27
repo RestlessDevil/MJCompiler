@@ -55,7 +55,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		} else {// MatrixElementDesignator
 			Code.load(factor.getDesignator().obj);
 			Code.put(Code.dup_x2);
-			Code.loadConst(1);
+			Code.loadConst(0);
 			Code.put(Code.aload);
 			Code.put(Code.mul);
 			Code.put(Code.add);
@@ -112,7 +112,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			// Fuck with the stack until it works
 			Code.load(statement.getDesignator().obj);
 			Code.put(Code.dup_x2);
-			Code.loadConst(1);
+			Code.loadConst(0);
 			Code.put(Code.aload); // Load m
 			Code.put(Code.mul);
 			Code.put(Code.add);
@@ -160,7 +160,7 @@ public class CodeGenerator extends VisitorAdaptor {
 				Code.put(Code.astore);
 			} else { // MatrixElementDesignator
 				// TODO: Implement
-				throw new RuntimeException("Tek treba da se implementira");
+				throw new RuntimeException("MJ ne podrzava upis u element matrice kroz multidesignator");
 			}
 		}
 	}
@@ -170,16 +170,22 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementIncrement statement) {
-		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup); // Need that index on the stack to remain for astore
 		}
 
 		Code.load(statement.getDesignator().obj);
 
-		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
+		if (statement.getDesignator() instanceof MatrixElementDesignator) {
+			// TODO: implement for matrix
+			throw new RuntimeException("MJ ne podrzava direktno inkrementiranje elementa matrice");
+		}
+
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
 			Code.put(Code.aload);
+			Code.put(Code.dup);
 		}
 
 		Code.loadConst(1);
@@ -195,13 +201,18 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementDecrement statement) {
-		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup); // Need that index on the stack to remain for astore
 		}
 
 		Code.load(statement.getDesignator().obj);
 
-		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
+		if (statement.getDesignator() instanceof MatrixElementDesignator) {
+			// TODO: implement for matrix
+			throw new RuntimeException("MJ ne podrzava direktno dekrementiranje elementa matrice");
+		}
+
+		if (statement.getDesignator() instanceof ArrayElementDesignator) {
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
 			Code.put(Code.aload);
@@ -250,7 +261,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			designatorType = designatorObj.getType().getElemType();
 		} else { // MatrixElementDesignator
 			// TODO: implement
-			throw new RuntimeException("Nije jos implementirano");
+			throw new RuntimeException("MJ ne podrzava direktno citanje u element matrice");
 		}
 
 		if (designatorType == SemanticAnalyzer.STRUCT_INT) { // STRUCT_INT
