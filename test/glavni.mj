@@ -40,7 +40,6 @@ program test301
 		print(a);	// niz[1] -> 2
 
 		niz2 = new int[2];
-		// DOVDE DOBRO
 
 		[niz2[0],,niz2[niz[nula]]] = niz;
 
