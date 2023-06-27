@@ -47,11 +47,14 @@ public class CodeGenerator extends VisitorAdaptor {
 				Code.loadConst(factor.getDesignator().obj.getAdr());
 				break;
 			}
-		} else { // ArrayElementDesignator
+		} else if (factor.getDesignator() instanceof ArrayElementDesignator) { // ArrayElementDesignator
 			Code.load(factor.getDesignator().obj);
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
 			Code.put(Code.aload);
+		} else {// MatrixElementDesignator
+			// TODO:
+			throw new RuntimeException("Tek treba da se implementira");
 		}
 	}
 
@@ -88,12 +91,21 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(StatementAssignExpression statement) {
 		if (statement.getDesignator() instanceof SimpleDesignator) {
 			Code.store(statement.getDesignator().obj);
-		} else { // ArrayElementDesignator
+		} else if (statement.getDesignator() instanceof ArrayElementDesignator) { // ArrayElementDesignator
 			// Code generator is not compatible with the Runtime, hence this
 			Code.load(statement.getDesignator().obj);
 			Code.put(Code.dup_x2);
 			Code.put(Code.pop);
 			Code.put(Code.astore);
+		} else { // MatrixElementDesignator
+			// Matrix index is calculated as 2 + y * m + x
+			Code.load(statement.getDesignator().obj);
+			// TODO: implement
+			throw new RuntimeException("Not yet implemented");
+			/*
+			 * Code.load(statement.getDesignator().obj); Code.put(Code.dup_x2);
+			 * Code.put(Code.pop); Code.put(Code.astore);
+			 */
 		}
 	}
 
@@ -124,11 +136,14 @@ public class CodeGenerator extends VisitorAdaptor {
 
 			if (singleDesignator instanceof SimpleDesignator) {
 				Code.store(singleDesignator.obj);
-			} else { // ArrayElementDesignator
+			} else if (singleDesignator instanceof ArrayElementDesignator) { // ArrayElementDesignator
 				Code.load(singleDesignator.obj);
 				Code.put(Code.dup_x2);
 				Code.put(Code.pop);
 				Code.put(Code.astore);
+			} else { // MatrixElementDesignator
+				// TODO: Implement
+				throw new RuntimeException("Tek treba da se implementira");
 			}
 		}
 	}
@@ -138,13 +153,13 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementIncrement statement) {
-		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
 			Code.put(Code.dup); // Need that index on the stack to remain for astore
 		}
 
 		Code.load(statement.getDesignator().obj);
 
-		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
 			Code.put(Code.aload);
@@ -163,13 +178,13 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 
 	public void visit(StatementDecrement statement) {
-		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
 			Code.put(Code.dup); // Need that index on the stack to remain for astore
 		}
 
 		Code.load(statement.getDesignator().obj);
 
-		if (statement.getDesignator() instanceof ArrayElementDesignator) {
+		if (statement.getDesignator() instanceof ArrayElementDesignator) { // TODO: implement for matrix
 			Code.put(Code.dup_x1);
 			Code.put(Code.pop);
 			Code.put(Code.aload);
@@ -213,9 +228,12 @@ public class CodeGenerator extends VisitorAdaptor {
 		if (statement.getDesignator() instanceof SimpleDesignator) {
 			designatorObj = ((SimpleDesignator) statement.getDesignator()).obj;
 			designatorType = designatorObj.getType();
-		} else { // ArrayElementDesignator
+		} else if (statement.getDesignator() instanceof ArrayElementDesignator) { // ArrayElementDesignator
 			designatorObj = ((ArrayElementDesignator) statement.getDesignator()).obj;
 			designatorType = designatorObj.getType().getElemType();
+		} else { // MatrixElementDesignator
+			// TODO: implement
+			throw new RuntimeException("Nije jos implementirano");
 		}
 
 		if (designatorType == SemanticAnalyzer.STRUCT_INT) { // STRUCT_INT
@@ -241,6 +259,41 @@ public class CodeGenerator extends VisitorAdaptor {
 		} else {
 			Code.put(1);
 		}
+		Code.store(statement.getDesignator().obj);
+	}
+
+	public void visit(StatementAllocateMatrix statement) {
+		// Preserve dimensions on the expression stack
+		Code.put(Code.dup2);
+		// Calculate serialized matrix size
+		Code.put(Code.mul);
+		Code.loadConst(2);
+		Code.put(Code.add);
+
+		// Proceed like with an array
+		Code.put(Code.newarray);
+		if (statement.getType().struct == SemanticAnalyzer.STRUCT_CHAR) {
+			Code.put(0);
+		} else {
+			Code.put(1);
+		}
+		// Fucking with the expression stack until it works
+		Code.put(Code.dup_x2);
+		Code.put(Code.dup_x1);
+		Code.put(Code.pop);
+		Code.loadConst(1);
+		Code.put(Code.dup_x1);
+		Code.put(Code.pop);
+		Code.put(Code.astore);
+
+		Code.put(Code.dup2);
+		Code.put(Code.pop);
+		Code.put(Code.dup_x1);
+		Code.put(Code.pop);
+		Code.loadConst(0);
+		Code.put(Code.dup_x1);
+		Code.put(Code.pop);
+		Code.put(Code.astore);
 		Code.store(statement.getDesignator().obj);
 	}
 }

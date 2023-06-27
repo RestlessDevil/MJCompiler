@@ -69,7 +69,8 @@ VarSymbolList ::= (VarSymbols) VarSymbolList COMMA VarSymbol:varSymbol
 				| (VarSymbolSingle) VarSymbol:varSymbol;
 			
 VarSymbol ::= (VarSimple) IDENTIFIER:symbolName
-			| (VarArray) IDENTIFIER:symbolName LSQUARE RSQUARE;
+			| (VarArray) IDENTIFIER:symbolName LSQUARE RSQUARE
+			| (VarMatrix) IDENTIFIER:symbolName LSQUARE RSQUARE LSQUARE RSQUARE;
 
 Type ::= (Type) IDENTIFIER:typeName;
 
@@ -90,7 +91,8 @@ Statement ::= (StatementAssignExpression) Designator ASSIGN Expression SEMICOLON
 			| (StatementPrint) PRINT LPAREN Expression RPAREN SEMICOLON
 			| (StatementPrintWidth) PRINT LPAREN Expression COMMA NUMBER:width RPAREN SEMICOLON
 			| (StatementRead) READ LPAREN Designator RPAREN SEMICOLON
-			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON;
+			| (StatementAllocateArray) Designator ASSIGN NEW Type LSQUARE Expression RSQUARE SEMICOLON
+			| (StatementAllocateMatrix) Designator ASSIGN NEW Type LSQUARE Expression:rowNum RSQUARE LSQUARE Expression:colNum RSQUARE SEMICOLON;
 			
 MultiDesignator ::= (MultiDesignatorWithDesignator) Designator COMMA MultiDesignator
 			| (MultiDesignatorSkip) COMMA MultiDesignator
@@ -98,7 +100,8 @@ MultiDesignator ::= (MultiDesignatorWithDesignator) Designator COMMA MultiDesign
 			| (MultiDesignatorLastComma) Designator COMMA;
 
 Designator ::= (SimpleDesignator) IDENTIFIER:designatorName
-			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE;
+			| (ArrayElementDesignator) IDENTIFIER:arrayName LSQUARE Expression RSQUARE
+			| (MatrixElementDesignator) IDENTIFIER:matrixName LSQUARE Expression RSQUARE LSQUARE Expression RSQUARE;
 
 
 Expression ::= (Expression) Term AddOperations;

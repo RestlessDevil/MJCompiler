@@ -1,0 +1,16 @@
+// Test301
+
+program test301
+
+	int mat[][];
+	
+{
+	void main()	
+	{
+
+		
+		mat = new int[3][5];
+			
+	}
+}
+

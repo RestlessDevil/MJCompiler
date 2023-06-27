@@ -85,6 +85,7 @@ public class MJCompiler {
 				Code.write(outputStream);
 			}
 		} catch (IOException ex) {
+			ex.printStackTrace();
 			LOG.error(ex.getMessage(), ex);
 		}
 	}

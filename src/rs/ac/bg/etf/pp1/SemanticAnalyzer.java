@@ -179,7 +179,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			reportInfo("Deklarisana je " + (vs.obj.getLevel() > 0 ? "lokalna" : "globalna") + " promenljiva \""
 					+ vs.getSymbolName() + "\" tipa " + structToTypeName(typeStruct) + " sa adresom " + vs.obj.getAdr(),
 					symbol);
-		} else { // VarArray
+		} else if (symbol instanceof VarArray) { // VarArray
 			VarArray va = (VarArray) symbol;
 			va.obj = Tab.insert(Obj.Var, va.getSymbolName(), new Struct(Struct.Array, typeStruct));
 			va.obj.setAdr(currentMethodAddressCounter++);
@@ -188,6 +188,14 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 					"Deklarisan je " + (va.obj.getLevel() > 0 ? "lokalni" : "globalni") + " niz \"" + va.getSymbolName()
 							+ "\" promenljivih tipa " + structToTypeName(typeStruct) + " sa adresom " + va.obj.getAdr(),
 					symbol);
+		} else { // VarMatrix
+			VarMatrix vm = (VarMatrix) symbol;
+			// Just like an array
+			vm.obj = Tab.insert(Obj.Var, vm.getSymbolName(), new Struct(Struct.Array, typeStruct));
+			vm.obj.setAdr(currentMethodAddressCounter++);
+			reportInfo("Deklarisana je " + (vm.obj.getLevel() > 0 ? "lokalna" : "globalna") + " matrica \""
+					+ vm.getSymbolName() + "\" promenljivih tipa " + structToTypeName(typeStruct) + " sa adresom "
+					+ vm.obj.getAdr(), symbol);
 		}
 	}
 
@@ -245,6 +253,22 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 
+	public void visit(MatrixElementDesignator designator) {
+		String name = designator.getMatrixName();
+		Obj arrayObj = Tab.find(name);
+		if (arrayObj != Tab.noObj) {
+			// Deliberately using Obj.Var instead of Obj.Elem, because of the Runtime
+			// problem
+			// designator.obj = new Obj(Obj.Elem, name + "_element",
+			// arrayObj.getType().getElemType());
+			designator.obj = arrayObj;
+			LOG.debug("Detektovan je pristup elementu " + (arrayObj.getLevel() > 0 ? "lokalne" : "globalne")
+					+ " matrice \"" + name + "\"");
+		} else {
+			reportError("Matrica \"" + designator.getMatrixName() + "\" nije deklarisan", designator);
+		}
+	}
+
 	// ********** Expression validation **********
 
 	private Struct detectFactorStruct(Factor factor) {
@@ -256,8 +280,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			Designator designator = ((FactorDesignator) factor).getDesignator();
 			if (designator instanceof SimpleDesignator) { // Simple Designator
 				factor.struct = Tab.find(((SimpleDesignator) designator).getDesignatorName()).getType();
-			} else { // ArrayElementDesignator
+			} else if (designator instanceof ArrayElementDesignator) { // ArrayElementDesignator
 				factor.struct = Tab.find(((ArrayElementDesignator) designator).getArrayName()).getType().getElemType();
+			} else { // MatrixElementDesignator
+				factor.struct = Tab.find(((MatrixElementDesignator) designator).getMatrixName()).getType()
+						.getElemType();
 			}
 		} else { // FactorInParenthesis
 			factor.struct = detectExpressionType(((FactorInParenthesis) factor).getExpression());
@@ -347,8 +374,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		if (designator instanceof SimpleDesignator) {
 			designatorName = ((SimpleDesignator) designator).getDesignatorName();
 			designatorType = designator.obj.getType();
-		} else {
+		} else if (designator instanceof ArrayElementDesignator) {
 			designatorName = ((ArrayElementDesignator) designator).getArrayName();
+			designatorType = designator.obj.getType().getElemType();
+		} else {
+			designatorName = ((MatrixElementDesignator) designator).getMatrixName();
 			designatorType = designator.obj.getType().getElemType();
 		}
 
@@ -427,9 +457,42 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 							+ ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" je tipa "
 							+ structToTypeName(designatorType), statement);
 				}
-			} else { // Matrix is not supported
+			} else { // Bad Matrix
 				reportError(
-						"MicroJava ne podrzava matrice (\""
+						"MicroJava ne podrzava nizove nizova, nego posebno deklarisane matrice (\""
+								+ ((ArrayElementDesignator) statement.getDesignator()).getArrayName() + "[][]\")",
+						statement);
+			}
+		} else { // Not an array
+			reportError("\"" + ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" nije niz",
+					statement);
+		}
+	}
+
+	public void visit(StatementAllocateMatrix statement) {
+		Struct designatorType = statement.getDesignator().obj.getType();
+		try {
+			statement.getType().struct = typeNameToStruct(statement.getType().getTypeName());
+		} catch (Exception e) {
+			reportError(statement.getType().getTypeName() + " tip nije podrzan", statement);
+		}
+		Struct expressionType = detectExpressionType(statement.getExpression());
+		Struct expressionType1 = detectExpressionType(statement.getExpression1());
+
+		if (!expressionType.equals(STRUCT_INT) || !expressionType1.equals(STRUCT_INT)) {
+			reportError("Dimenzije matrice moraju biti tipa int", statement);
+		}
+
+		if (designatorType.getKind() == Struct.Array) {
+			if (statement.getDesignator() instanceof SimpleDesignator) { // Must be SimpleDesignator
+				if (!designatorType.getElemType().equals(statement.getType().struct)) {
+					reportError("Alocira se niz tipa " + structToTypeName(statement.getType().struct) + ", ali niz \""
+							+ ((SimpleDesignator) statement.getDesignator()).getDesignatorName() + "\" je tipa "
+							+ structToTypeName(designatorType), statement);
+				}
+			} else { // Bad Matrix
+				reportError(
+						"MicroJava ne podrzava matrice nizova, nego samo prostih tipova (\""
 								+ ((ArrayElementDesignator) statement.getDesignator()).getArrayName() + "[][]\")",
 						statement);
 			}
@@ -472,6 +535,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 
+	// Deprecated
 	public void visit(StatementMultiAssign statement) {
 		Struct arrayType = statement.getDesignator().obj.getType();
 		if (arrayType.getKind() == Struct.Array) {

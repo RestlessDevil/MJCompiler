@@ -61,7 +61,7 @@
 	<target name="disasm">
 		<java classname="rs.etf.pp1.mj.runtime.disasm" fork="true">
 			<jvmarg value="-Djava.security.manager=allow" />
-			<arg value="test/test301.obj" />
+			<arg value="test/partial2.obj" />
 			<classpath>
 				<pathelement location="lib/mj-runtime-1.1.jar" />
 			</classpath>
@@ -72,7 +72,7 @@
 		<java classname="rs.etf.pp1.mj.runtime.Run" fork="true">
 			<jvmarg value="-Djava.security.manager=allow" />
 			<arg value="-debug" />
-			<arg value="test/glavni.obj" />
+			<arg value="test/partial2.obj" />
 			<classpath>
 				<pathelement location="lib/mj-runtime-1.1.jar" />
 			</classpath>
@@ -83,7 +83,7 @@
 	<target name="runObj" depends="debug">
 		<java classname="rs.etf.pp1.mj.runtime.Run" fork="true">
 			<jvmarg value="-Djava.security.manager=allow" />
-			<arg value="test/glavni.obj" />
+			<arg value="test/partial2.obj" />
 			<classpath>
 				<pathelement location="lib/mj-runtime-1.1.jar" />
 			</classpath>
