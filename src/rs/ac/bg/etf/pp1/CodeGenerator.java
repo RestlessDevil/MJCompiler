@@ -98,14 +98,24 @@ public class CodeGenerator extends VisitorAdaptor {
 			Code.put(Code.pop);
 			Code.put(Code.astore);
 		} else { // MatrixElementDesignator
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+
 			// Matrix index is calculated as 2 + y * m + x
+			// Fuck with the stack until it works
 			Code.load(statement.getDesignator().obj);
-			// TODO: implement
-			throw new RuntimeException("Not yet implemented");
-			/*
-			 * Code.load(statement.getDesignator().obj); Code.put(Code.dup_x2);
-			 * Code.put(Code.pop); Code.put(Code.astore);
-			 */
+			Code.put(Code.dup_x2);
+			Code.loadConst(1);
+			Code.put(Code.aload); // Load m
+			Code.put(Code.mul);
+			Code.put(Code.add);
+			Code.loadConst(2);
+			Code.put(Code.add);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.dup_x2);
+			Code.put(Code.pop);
+			Code.put(Code.astore);
 		}
 	}
 
